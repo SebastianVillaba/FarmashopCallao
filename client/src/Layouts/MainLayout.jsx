@@ -1,0 +1,254 @@
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import CssBaseline from '@mui/material/CssBaseline';
+import useScrollTrigger from '@mui/material/useScrollTrigger';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import { Outlet, useNavigate } from 'react-router-dom';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import { Badge, Button, Icon, IconButton, styled, TextField } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import PersonIcon from '@mui/icons-material/Person';
+import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { useDispatch, useSelector } from 'react-redux';
+import { setShowCart } from '../redux/cartSlice';
+import CartView from '../Components/CartView';
+import Footer from '../Components/Footer';
+import logoImg from '../assets/farmaShop/cropped-Logo-Farmashop-Horizontal-blanco.png'
+import fondo from '../assets/farmaShop/barra-principal.png'
+
+function ElevationScroll(props) {
+    
+  const { children, window } = props;
+  // Note that you normally won't need to set the window ref as useScrollTrigger
+  // will default to window.
+  // This is only being set here because the demo is in an iframe.
+  const trigger = useScrollTrigger({
+    disableHysteresis: true,
+    threshold: 0,
+    target: window ? window() : undefined,
+  });
+
+  return children
+    ? React.cloneElement(children, {
+        elevation: trigger ? 4 : 0,
+      })
+    : null;
+}
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    right: -3,
+    top: 13,
+    padding: '0 4px',
+  },
+}));
+
+const SearchBar = styled(TextField)(({ theme }) => ({
+  '& .MuiInputBase-root': {
+    backgroundColor: 'white',
+    borderRadius: '25px',
+    padding: '0 8px',
+    '&:hover': {
+      backgroundColor: '#00000',
+    },
+    // Eliminar borde inferior en todos los estados
+    '&::before, &::after': {
+      borderBottom: 'none !important',
+    },
+    // Eliminar el hover (si es necesario)
+    '&:hover:not(.Mui-disabled):before': {
+      borderBottom: 'none !important',
+    },
+    // Eliminar el focus
+    '&.Mui-focused:after': {
+      borderBottom: 'none !important',
+    }
+  },
+  '& .MuiInputBase-input': {
+    padding: '8px 0',
+  },
+  '& .MuiInputLabel-root': {
+    color: '#999',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#3c52b2',
+  },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: '#999',
+    },
+    '&:hover fieldset': {
+      borderColor: '#3c52b2',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#3c52b2',
+    },
+  },
+}));
+
+export default function MainLayout(props) {
+  const dispatch = useDispatch()
+  const showCart = useSelector(state => state.carrito.showCart);
+  const cartData = useSelector(state => state.carrito.cartData)
+  const navigate = useNavigate()
+
+  return (
+    <React.Fragment>
+      <CssBaseline />
+      <ElevationScroll {...props}>
+        <AppBar>
+          <Toolbar sx={{ backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}> 
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',  
+                gap: 4,
+            }}>
+                <Typography
+                  variant='h6' 
+                  onClick={() => navigate('/catalogo')} 
+                  sx={{
+                    transition: 'color 0.5s',
+                    fontSize: '0.9rem',
+                    gap: 1.2,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: '#fff',
+                    '&:hover': {
+                        color: '#3c52b2'
+                    },
+                }}>
+                    <FormatListBulletedIcon sx={{ fontSize: '1.8rem' }}/>
+                    Categorias
+                </Typography>
+                <Box >
+                  <SearchBar 
+                      variant='standard'
+                      placeholder='Buscar producto'
+                      size='medium'
+                      sx={{
+                        my: 1
+                      }}
+                  />
+                  <IconButton sx={{
+                        my: 1
+                      }}>
+                    <SearchIcon />
+                  </IconButton>
+                </Box>
+            </Box>
+            <Box
+                  component='img'
+                  src={logoImg}
+                  alt='Logo empresa'
+                  onClick={() => navigate('/home')} 
+                  sx={{
+                    my: 1,
+                    cursor: 'pointer',
+                  }}
+            />
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              mx: 4
+            }}>
+                <Button sx={{
+                    transition: 'color 0.5s',
+                    fontSize: '0.7rem',
+                    gap: 1.2,
+                    textTransform: 'capitalize',
+                    color: '#fff',
+                    '&:hover': {
+                        color: '#3c52b2'
+                    },
+                    padding: 0,
+                    height: '80%',
+                    borderRadius: '12px'
+                }}>
+                    <Box sx={{
+                        backgroundColor: 'white',
+                        width: '100%',
+                        height: '80%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: 0.7,
+                        color: '#637d89',
+                        padding: '4px',
+                        borderRadius: '12px'
+                    }}>
+                        <PersonIcon />
+                        Ingresar
+                    </Box>
+                </Button>
+                <Box>
+                  <IconButton sx={{
+                    fontSize: 'small',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 1,
+                    color: 'white'
+                  }}>
+                    <FavoriteBorderOutlinedIcon sx={{
+                      color: 'white',
+                      fontSize: '25px'
+                    }} />
+                    1
+                  </IconButton>
+                </Box>
+                <Box>
+                  <IconButton
+                    onClick={()=> dispatch(setShowCart(!showCart))} 
+                    sx={{
+                      fontSize: 'small',
+                      color: 'white',                    
+                    }}>
+                    <StyledBadge badgeContent={cartData.length} color='error'>
+                      <ShoppingCartIcon/>
+                    </StyledBadge>
+                  </IconButton>
+                </Box>
+              {/* Carrito desplegable */}
+              {
+                showCart && (
+                  <Box sx={{
+                    position: 'fixed',
+                    top: 60,
+                    right: 16,
+                    width:  {xs: '14rem', sm: '16rem', md: '18rem', lg: '22rem'},
+                    maxWidth: 400,
+                    backgroundColor: 'white',
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    zIndex: 1100,
+                    maxHeight: '80vh',
+                    overflowY: 'auto',
+                    border: '2px solid #D5DAE0'
+                  }}>
+                    <CartView />
+                  </Box>
+              )}
+            </Box>
+          </Toolbar>
+        </AppBar>
+      </ElevationScroll>
+      <Toolbar />
+      <Box sx={{ width: '100%', overflowX: 'hidden', backgroundColor: '#f9f9f9' }}>
+        <Outlet />
+      </Box>
+    <Box>
+      <Footer />
+    </Box>
+    </React.Fragment>
+  );
+}
