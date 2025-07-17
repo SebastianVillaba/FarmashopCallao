@@ -12,12 +12,11 @@ const ProductosDestacados = ({ titulo, productos }) => {
                 <Typography variant="h5" sx={{
                     mb: 1,
                     fontWeight: 500,
-                    color: '#666666'
+                    color: '#d4459f'
                 }}>
                     {titulo}
                 </Typography>
 
-                <Divider />
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',

@@ -3,9 +3,9 @@ import { Box, IconButton } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 
 // IMPORTACIONES DE LAS IMAGENES
-import image1 from '../assets/ALLFILTROSBIEN.jpg'
-import image2 from '../assets/homeFILPYLOGO.jpg'
-import image3 from '../assets/hom3.jpeg'
+import image1 from '../assets/farmaShop/Banner-Farmashop-Delivery.jpg'
+import image2 from '../assets/farmaShop/Banner-web-agua-de-hamamelis.jpg'
+import image3 from '../assets/farmaShop/Banner-web-serum-pharmacare.jpg'
 
 const images = [ image1, image2, image3 ];
 
@@ -24,6 +24,7 @@ const HomePage = () => {
     <Box sx={{
       position: 'relative',
       width: '100vw',
+      height: '30vw',
       left: '50%',
       right: '50%',
       marginLeft: '-50vw',
@@ -43,8 +44,7 @@ const HomePage = () => {
             src={image}
             sx={{
               width: '100vw',
-              height: '600px',
-              
+              height: '30vw',
               flexShrink: 0
             }}
             alt={`Slide ${index + 1}`}

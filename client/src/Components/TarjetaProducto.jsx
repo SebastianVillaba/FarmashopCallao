@@ -1,9 +1,10 @@
 import { Button, Card, CardActions, CardContent, CardMedia, Collapse, Fade, Typography } from "@mui/material";
-import caniaImage from '../assets/filtroAceite.png';
+import caniaImage from 'C:/Temp/430495.JPG';
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addProductoCarrito } from "../redux/cartSlice";
 import { useNavigate } from "react-router-dom";
+import SelectorCantidad from "./SelectorCantidad";
 
 const TarjetaProducto = ({ producto }) => {
 
@@ -30,7 +31,8 @@ const TarjetaProducto = ({ producto }) => {
                 '&:hover': { 
                     transform: 'translateY(-5px)',
                     cursor: 'pointer'
-                }
+                },
+                borderRadius: '20px'
             }}
             onMouseOver={() => setIsOver(true)}
             onMouseOut={() => setIsOver(false)}
@@ -82,21 +84,31 @@ const TarjetaProducto = ({ producto }) => {
                     py: 1,
                 }}>
                     <Fade orientation="horizontal" in={isOver}>
-                        <Button 
-                            fullWidth
-                            sx={{
-                                border: "1.5px solid #c14c49",
-                                borderRadius: 20,
-                                color: '#c14c49'
-                            }}
-                            onClick={() => dispatch(addProductoCarrito({ 
-                                ...producto,
-                                caniaImage,
-                                cantidad: 1
-                            }))}
-                        >
-                            Agregar al carrito
-                        </Button>
+    <Button 
+        fullWidth
+        sx={{
+            border: "1.5px solid #d4459f",
+            borderRadius: 20,
+            color: '#d4459f',
+            transition: 'all 0.3s ease', // Transición base aplicada siempre
+            '&:hover': {
+                backgroundColor: '#ff6bc6',
+                color: 'white',
+                // Transiciones específicas para propiedades individuales (opcional)
+                transition:{ 
+                    backgroundColor: '0.5s ease',
+                    color: '0.2s ease'
+                }
+            }
+        }}
+        onClick={() => dispatch(addProductoCarrito({ 
+            ...producto,
+            caniaImage,
+            cantidad: 1
+        }))}
+    >
+        Agregar al carrito
+    </Button>
                     </Fade>
                 </CardActions>
             )}

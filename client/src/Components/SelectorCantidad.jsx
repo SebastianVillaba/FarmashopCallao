@@ -52,7 +52,7 @@ const SelectorCantidad = ({ producto, img }) => {
                     transition: 'background-color 0.2s',
                     cursor: 'pointer',
                     '&:hover': {
-                        backgroundColor: '#E9E43C',
+                        backgroundColor: '#ff6bc6',
                     }
                 }}
                 onClick={handleDecrement}
@@ -99,7 +99,7 @@ const SelectorCantidad = ({ producto, img }) => {
                     cursor: 'pointer',
                     transition: 'background-color 0.2s',
                     '&:hover': {
-                        backgroundColor: '#E9E43C',
+                        backgroundColor: '#ff6bc6',
                     }
                 }}
                 onClick={handleIncrement}
@@ -113,8 +113,8 @@ const SelectorCantidad = ({ producto, img }) => {
             sx={{
                 py: 2,
                 px: 12,
-                backgroundColor: '#FDCD05',
-                color: 'rgba(0, 0, 0, 0.75)',
+                backgroundColor: '#D4459F',
+                color: 'rgb(255, 255, 255)',
             }}
             onClick={() => dispatch(addProductoCarrito({ 
                 ...producto,

@@ -8,7 +8,7 @@ const DiscountHome = ({ discount }) => {
         <>
             <Box sx={{
                 backgroundColor: "#307FE0",
-                width: '250px',
+                width: '180px',
                 mx: 2,
                 my: 4,
                 display: 'flex',
@@ -27,7 +27,8 @@ const DiscountHome = ({ discount }) => {
                     fontFamily: "Poetsen One, sans-serif", // Aplica la fuente
                     fontSize: "4.5rem", // Ajusta el tamaño según necesidad
                     letterSpacing: "2px", // Opcional: ajuste de espaciado
-                    color: "#D4459F" 
+                    color: "#ff93d5",
+                    fontWeight: 'bold'
                   }}>
                     {discount}
                 </Typography>

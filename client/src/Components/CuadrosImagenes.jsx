@@ -1,59 +1,194 @@
-import { Box, Typography, Grid } from "@mui/material";
+import { useState, useRef, useEffect } from "react";
+import { Box, IconButton, Typography } from "@mui/material";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import imagenPrueba1 from '../assets/wixLogo.jpg';
 import imagenPrueba2 from '../assets/baldwinLogo.png';
 import imagenPrueba3 from '../assets/tridimLogo.jpeg';
 import imagenPrueba4 from '../assets/parkerRacorLogo.png';
 
 const imagenes = [
-    imagenPrueba1,
-    imagenPrueba2,
-    imagenPrueba3,
-    imagenPrueba4
+    { src: imagenPrueba1 },
+    { src: imagenPrueba2 },
+    { src: imagenPrueba3 },
+    { src: imagenPrueba4 },
+    { src: imagenPrueba1 },
+    { src: imagenPrueba2 },
+    { src: imagenPrueba3 },
+    { src: imagenPrueba4 },
 ];
 
-const CuadroIndividual = ({ imagen }) => {
-    return (
-        <Grid item xs={12} sm={6} md={6}>
-            <Box 
-                component="img"
-                src={imagen}
-                alt="Imagen de promoción"
-                sx={{
-                    width: '100%',
-                    maxWidth: 440,
-                    height: 280,
-                    borderRadius: '10%',
-                    border: '3.5px solid #FDCD05',
-                    transition: 'transform 0.3s ease',
-                    '&:hover': {
-                        transform: 'scale(1.05)'
-                    }
-                }}
-            />
-        </Grid>
-    );
-};
+const CuadroImagenes = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [itemsToShow, setItemsToShow] = useState(3);
+    const [slideDirection, setSlideDirection] = useState('right');
+    const containerRef = useRef(null);
+    
+    // Función para determinar cuántos elementos mostrar según el ancho de pantalla
+    const updateItemsToShow = () => {
+        const width = window.innerWidth;
+        if (width < 600) return 1;
+        if (width < 900) return 2;
+        return 3;
+    };
 
-const CuadroImagenes = ({ titulo }) => {
+    useEffect(() => {
+        setItemsToShow(updateItemsToShow());
+        const handleResize = () => setItemsToShow(updateItemsToShow());
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Ajustar currentIndex cuando cambia itemsToShow
+    useEffect(() => {
+        const maxIndex = Math.max(0, imagenes.length - itemsToShow);
+        if (currentIndex > maxIndex) {
+            setCurrentIndex(maxIndex);
+        }
+    }, [itemsToShow]);
+
+    const nextSlide = () => {
+        setSlideDirection('right');
+        setCurrentIndex(prevIndex => 
+            prevIndex >= imagenes.length - itemsToShow ? 0 : prevIndex + 1
+        );
+    };
+
+    const prevSlide = () => {
+        setSlideDirection('left');
+        setCurrentIndex(prevIndex => 
+            prevIndex === 0 ? imagenes.length - itemsToShow : prevIndex - 1
+        );
+    };
+
     return (
-        <Box sx={{ py: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {/*<Typography variant="h5" sx={{
-                mb: 6,
-                fontWeight: 500,
-                color: '#666666',
-                fontSize: { xs: '1.5rem', md: '2rem' }
+        <Box sx={{ 
+            py: 8, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center',
+            position: 'relative',
+            width: '100%',
+            overflow: 'hidden'
+        }}>
+            <Typography variant="h2" sx={{ 
+              textAlign: 'center', 
+              mb: 3,
+              fontSize: { xs: '2rem', sm: '2rem', md: '2.0rem' },
+              fontWeight: 700,
+              color: '#d4459f',
+              position: 'relative',
+              paddingTop: '20px',
+              '&:after': {
+                content: '""',
+                display: 'block',
+                width: '50%',
+                height: '4px',
+                background: 'linear-gradient(90deg, #ff8e9e, #5ecfff, #a78bfa)',
+                position: 'absolute',
+                bottom: '-15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                borderRadius: '2px'
+              }
             }}>
-                {titulo}
-            </Typography> */} {/* AQUI PODRIA IR EL TITULO */}
+                Promociones
+            </Typography>
             
-            <Grid container spacing={{ xs: 2, md: 4 }} sx={{
-                maxWidth: 1200,
-                margin: '0 auto',
+            <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: '1350px',
+                position: 'relative'
             }}>
-                {imagenes.map((imagen, index) => (
-                    <CuadroIndividual key={index} imagen={imagen} />
-                ))}
-            </Grid>
+                <IconButton 
+                    onClick={prevSlide}
+                    sx={{ 
+                        position: 'absolute', 
+                        left: { xs: '-10px', sm: '-20px', md: '-30px' },
+                        zIndex: 1,
+                        backgroundColor: 'rgba(255,255,255,0.7)',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255,255,255,0.9)'
+                        }
+                    }}
+                >
+                    <ArrowBackIosIcon sx={{ color: '#d45fa7' }} />
+                </IconButton>
+
+                {/* Contenedor principal con overflow oculto */}
+                <Box ref={containerRef} sx={{
+                    display: 'flex',
+                    width: '100%',
+                    overflow: 'hidden',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    height: '220px' // Ajusta según necesidad
+                }}>
+                    {/* Contenedor animado */}
+                    <Box sx={{
+                        display: 'flex',
+                        position: 'absolute',
+                        left: 0,
+                        height: '100%',
+                        transform: `translateX(${-currentIndex * (100 / itemsToShow)}%)`,
+                        transition: 'transform 0.5s ease-in-out',
+                    }}>
+                        {imagenes.map((imagen, index) => (
+                            <Box key={index} sx={{
+                                flex: `0 0 ${100 / itemsToShow}%`,
+                                maxWidth: `${100 / itemsToShow}%`,
+                                padding: '0 10px',
+                                boxSizing: 'border-box',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}>
+                                <Box sx={{
+                                    position: 'relative',
+                                    borderRadius: '24px',
+                                    overflow: 'hidden',
+                                    boxShadow: '0px 4px 10px rgba(0,0,0,0.1)',
+                                    cursor: 'pointer',
+                                    width: '100%',
+                                    height: '200px',
+                                    transition: 'transform 0.3s',
+                                    '&:hover': {
+                                        transform: 'scale(1.03)'
+                                    }
+                                }}>
+                                    <Box 
+                                        component="img"
+                                        src={imagen.src}
+                                        alt="Imagen de promoción"
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                </Box>
+                            </Box>
+                        ))}
+                    </Box>
+                </Box>
+
+                <IconButton 
+                    onClick={nextSlide}
+                    sx={{ 
+                        position: 'absolute', 
+                        right: { xs: '-10px', sm: '-20px', md: '-30px' },
+                        zIndex: 1,
+                        backgroundColor: 'rgba(255,255,255,0.7)',
+                        '&:hover': {
+                            backgroundColor: 'rgba(255,255,255,0.9)'
+                        }
+                    }}
+                >
+                    <ArrowForwardIosIcon sx={{ color: '#d45fa7' }} />
+                </IconButton>
+            </Box>
         </Box>
     );
 };

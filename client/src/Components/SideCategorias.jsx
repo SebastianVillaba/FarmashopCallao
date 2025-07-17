@@ -12,14 +12,14 @@ import { styled } from '@mui/material/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCategoriaSeleccionada } from '../redux/utilsSlice.js';
 import { useFocus } from '../hooks/useFocusHook.js';
+import { buscarProductosPorCategoria, limpiarCategoria } from '../redux/searchSlice';
+import { useNavigate } from 'react-router-dom';
+
 
 const Accordion = styled((props) => (
     <MuiAccordion disableGutters elevation={0} square {...props} />
   ))(({ theme }) => ({
-    border: `1px solid ${theme.palette.divider}`,
-    '&::before': {
-      display: 'none',
-    },
+
 }));
 
 const AccordionSummary = styled((props) => (
@@ -28,7 +28,8 @@ const AccordionSummary = styled((props) => (
       {...props}
     />
   ))(({ theme }) => ({
-    backgroundColor: 'rgba(0, 0, 0, .03)',
+    borderBottom: '1px solid #D4459F',
+    backgroundColor: '#fce3f2',
     flexDirection: 'row-reverse',
     [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]:
       {
@@ -38,14 +39,27 @@ const AccordionSummary = styled((props) => (
       marginLeft: theme.spacing(1),
     },
     ...theme.applyStyles('dark', {
-      backgroundColor: 'rgba(255, 255, 255, .05)',
+      backgroundColor: '#fce3f2',
     }),
 }));
   
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
     padding: theme.spacing(1),
     borderTop: '1px solid rgba(0, 0, 0, .125)',
+    backgroundColor: '#fce3f2',
+    '&:hover': {
+        backgroundColor: '#fce3f2',
+        
+    }
 }));
+
+const descuentosOffline = [
+    { id: 1, nombre: "Descuento del 10%" },
+    { id: 2, nombre: "Descuento del 20%" },
+    { id: 3, nombre: "Descuento del 30%" },
+    { id: 4, nombre: "Descuento del 40%" },
+    { id: 5, nombre: "Descuento del 50%" }
+]
 
 const SideCategorias = () => {
 
@@ -56,11 +70,24 @@ const SideCategorias = () => {
     // Hooks useState
     const [ categories, setCategories ] = useState([]);
     const [ marcas, setMarcas ] = useState([]);
+    const [ descuentos, setDescuento ] = useState([]);
+
+    //Hook navigate
+    const navigate = useNavigate();
+
+    const handleSelectCategory = (id) => {
+        dispatch(setCategoriaSeleccionada(id));
+        dispatch(limpiarCategoria()); // Limpiar búsqueda previa
+        dispatch(buscarProductosPorCategoria(id));
+        navigate('/catalogo'); // Navegar a la página de catálogo
+    };
+
 
 
     const getCategories = async () => {
         try {
-            const response = await axios.get("/api/productos/getTipoProductos");
+            const response = await axios.get("/api/productos/getCategorias");
+            console.log(response);
             setCategories(response.data.respuesta);
         } catch (error) {
             console.error("Error al obtener las categorías: ui", error);
@@ -69,46 +96,63 @@ const SideCategorias = () => {
     }
 
     
-    // Función para obtener marcas
-    const getMarcas = async (tipoProducto) => {
-        try {
-            const response = await axios.get("/api/productos/getMarcaByTipo", {
-                params: { tipoProducto }
-            });
-            setMarcas(response.data.respuesta);
-        } catch (error) {
-            console.error("Error al obtener las marcas:", error);
-            setMarcas([]);
-        }
-    }
+    // // Función para obtener marcas
+    // const getMarcas = async (tipoProducto) => {
+    //     try {
+    //         const response = await axios.get("/api/productos/getMarcaByTipo", {
+    //             params: { tipoProducto }
+    //         });
+    //         setMarcas(response.data.respuesta);
+    //     } catch (error) {
+    //         console.error("Error al obtener las marcas:", error);
+    //         setMarcas([]);
+    //     }
+    // }
 
     useEffect(() => {
         getCategories();
     }, []);
 
-    useEffect(() => {
-        if(categoriaSeleccionada) {
-            getMarcas(categoriaSeleccionada);
-        }
-    }, [categoriaSeleccionada]);
+    // useEffect(() => {
+    //     if(categoriaSeleccionada) {
+    //         getMarcas(categoriaSeleccionada);
+    //     }
+    // }, [categoriaSeleccionada]);
 
     return (
         <Box sx={{
-            width: "15%",
-            
+            backgroundColor: '#fce3f2',
+            p: 2.5,
+            borderRadius: '20px',
+            boxShadow: '0px 3px 5px 0px rgba(0,0,0,0.30);',
+            height: '100%'
         }}>
-            <ProductosAcordeon
-                categorias={categories} 
-                onSelectCategory={(id) => dispatch(setCategoriaSeleccionada(id))}
-                selectedCategory={categoriaSeleccionada}
-                marcas={marcas}
-            />
+            <Box sx={{
+                borderBottom: '1px solid #D4459F',
+                mb: 2,
+            }}>
+                <Typography variant="h5" sx={{ color: '#d35fa7', mb: 1 }}>
+                    Filtrar por:
+                </Typography>
+            </Box>
+            
+            <Box sx={{
+                width: "100%",
+            }}>
+                <ProductosAcordeon
+                    categorias={categories} 
+                    onSelectCategory={handleSelectCategory}
+                    selectedCategory={categoriaSeleccionada}
+                    marcas={marcas}
+                    descuentos={descuentos}
+                />
+            </Box>
         </Box>
     );
 };
 
 // Acordeon de ver todos los productos
-const ProductosAcordeon = ({ categorias, onSelectCategory, selectedCategory, marcas }) => {
+const ProductosAcordeon = ({ categorias, onSelectCategory, selectedCategory, marcas, descuentos }) => {
     const [expanded, setExpanded] = React.useState(false);
     
     const handleChange = (panel) => (event, isExpanded) => {
@@ -121,7 +165,38 @@ const ProductosAcordeon = ({ categorias, onSelectCategory, selectedCategory, mar
                 expanded={expanded === 'panel1'} 
                 onChange={handleChange('panel1')}
             >
-                <AccordionSummary>Ver todas las categorias</AccordionSummary>
+                <AccordionSummary>Descuentos</AccordionSummary>
+                <AccordionDetails>
+                    <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+                        {descuentosOffline.length > 0 && (
+                            <>
+                                {descuentosOffline.map(descuento => (
+                                    <Box
+                                     key={descuento.id} 
+                                     sx={{
+                                            cursor: "pointer", 
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            p: 1,
+                                            padding: "8px",
+                                            transition: "background-color 0.5s",
+                                            '&:hover': {
+                                                backgroundColor: "#efb3d7"
+                                            }  
+                                        }}>
+                                        <Typography variant="body2">{descuento.nombre}</Typography>
+                                    </Box>
+                                ))}
+                            </>
+                        )}
+                    </Box>
+                </AccordionDetails>
+            </Accordion>
+            <Accordion 
+                expanded={expanded === 'panel2'} 
+                onChange={handleChange('panel2')}
+            >
+                <AccordionSummary>Categorias</AccordionSummary>
                 <AccordionDetails >
                     {categorias.map((category) => (
                         <CategoryItem 
@@ -137,10 +212,10 @@ const ProductosAcordeon = ({ categorias, onSelectCategory, selectedCategory, mar
                 </AccordionDetails>
             </Accordion>
             <Accordion 
-                expanded={expanded === 'panel2'} 
-                onChange={handleChange('panel2')}
+                expanded={expanded === 'panel3'} 
+                onChange={handleChange('panel3')}
             >
-                <AccordionSummary>Ver todas las marcas</AccordionSummary>
+                <AccordionSummary>Marcas</AccordionSummary>
                 <AccordionDetails>
                     <Box sx={{ display: 'flex', flexDirection: 'column'}}>
                         {marcas.length > 0 && (
@@ -156,7 +231,7 @@ const ProductosAcordeon = ({ categorias, onSelectCategory, selectedCategory, mar
                                             padding: "8px",
                                             transition: "background-color 0.5s",
                                             '&:hover': {
-                                                backgroundColor: "#dbd9d9"
+                                                backgroundColor: "#efb3d7"
                                             }  
                                         }}>
                                         <Typography variant="body2">{marca.nombreMarca}</Typography>
@@ -180,7 +255,7 @@ const CategoryItem = ({ name, isSelected, onClick }) => (
             padding: "8px",
             transition: "background-color 0.5s",
             '&:hover': {
-                backgroundColor: "#dbd9d9"
+                backgroundColor: "#efb3d7"
             }
     }}>
         <Typography 

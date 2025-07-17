@@ -8,9 +8,11 @@ import filtroImg from '../assets/filtroCombustible.jpg'
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import SelectorCantidad from "../Components/SelectorCantidad";
-import { MoneyOffCsredSharp } from "@mui/icons-material";
+import { CenterFocusStrong, MoneyOffCsredSharp } from "@mui/icons-material";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { formatCurrency } from "./CartPage";
+import ProductosDestacados from "../Components/ProductosDestacados";
 
 const productOffline = {
     nombreProducto: 'Cania de pescar',
@@ -23,6 +25,44 @@ const productOffline = {
 const imagenesProducto = [
     caniaImg,
     filtroImg
+]
+
+const productosRelacionados = [
+    {
+        codigo: "404303",
+        idProducto: 259,
+        nombreMarca: "CATERPILLAR",
+        nombreMercaderia: "KOTEX NOCHE",
+        precio: 431200
+    },
+    {
+        codigo: "404304",
+        idProducto: 260,
+        nombreMarca: "CATERPILLAR",
+        nombreMercaderia: "KOTEX DIA",
+        precio: 431200
+    },
+    {
+        codigo: "404305",
+        idProducto: 261,
+        nombreMarca: "CATERPILLAR",
+        nombreMercaderia: "KOTEX TARDE",
+        precio: 431200
+    },
+    {
+        codigo: "404306",
+        idProducto: 262,
+        nombreMarca: "CATERPILLAR",
+        nombreMercaderia: "KOTEX NOCHE PLUS",
+        precio: 431200
+    },
+    {
+        codigo: "404307",
+        idProducto: 263,
+        nombreMarca: "CATERPILLAR",
+        nombreMercaderia: "KOTEX DIA PLUS",
+        precio: 431200
+    },
 ]
 
 
@@ -57,10 +97,6 @@ const DetalleProducto = () => {
         }
     }
 
-    const handleMonedaSeleccionada = (e) => {
-        setSeleccionMoneda(e.target.value)
-    }
-
     useEffect(() => {
         fetchProductById();
     }, []);
@@ -74,7 +110,7 @@ const DetalleProducto = () => {
             <Box sx={{ margin: 5 }}>
               <CustomBreadcrumbs />
             </Box>
-            <Box>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Container sx={{ display: 'flex', flexDirection: 'row', gap: 4, marginBottom: 8 }}>
                     {/* BOX PARA LAS IMAGENES */}
                     <Box sx={{
@@ -182,10 +218,22 @@ const DetalleProducto = () => {
                         flexDirection: 'column',
                         gap: 1.5,
                         marginTop: '18px'
-                    }}>                            
-                        <Typography variant="body2">
-                            {product.nombreMarca}
-                        </Typography>
+                    }}>
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            gap: 1,
+                            alignItems: 'center'
+                        }}>
+                            <Typography variant="body2">
+                                <strong>Laboratorio:</strong>
+                            </Typography>
+                            <Typography variant="body2" sx={{
+                                color: '#d4459f'
+                            }}>
+                                {product.nombreLab}
+                            </Typography>
+                        </Box>                            
                         {
                             product.stockTotal > 0 ?
                                 /* SI ES QUE HAY PRODUCTOS */
@@ -195,7 +243,7 @@ const DetalleProducto = () => {
                                     gap: 1
                                 }}>
                                     <DoneAllIcon />  
-                                    <Typography variant="body2"> En Stock</Typography>--3
+                                    <Typography variant="body2"> En Stock</Typography>
                                 </Box>
                                 :
                                 /* SI NO HAY PRODUCTOS */
@@ -214,25 +262,12 @@ const DetalleProducto = () => {
                         <Typography variant="body1">
                             <strong>Código: {product.codigo}</strong>
                         </Typography>
-                        <Box>
+                        <Box sx={{
+                            gap: 4
+                        }}>
                             <Typography variant="body1">
-                                <strong>Precios:</strong>
+                                <strong>Precio: {formatCurrency(product.precio)}</strong> 
                             </Typography>
-                            <FormControl size="small" sx={{ minWidth: 120, marginRight: 2 }} onChange={()=> handleMonedaSeleccionada(e)}>
-                                <Select
-                                    value={seleccionMoneda || ''}
-                                >
-                                    <MenuItem value='' disabled>
-                                        Seleccione la moneda
-                                    </MenuItem>
-                                    <MenuItem>
-                                        ₲ {product.precio}
-                                    </MenuItem>
-                                    <MenuItem>
-                                        $ {product.precio}
-                                    </MenuItem>
-                                </Select>
-                            </FormControl>
                             <Typography variant="subtitle2">
                                 * Precio exclusivo para compras con pago en efectivo.
                             </Typography>
@@ -240,6 +275,12 @@ const DetalleProducto = () => {
                         <SelectorCantidad producto={product} img={caniaImg}/>
                     </Box>
                 </Container>
+                <Box>
+                    <ProductosDestacados
+                        titulo={'Productos relacionados'}
+                        productos={productosRelacionados}
+                    />
+                </Box>
             </Box>        
         </>
     )

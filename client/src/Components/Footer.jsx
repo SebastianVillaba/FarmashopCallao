@@ -1,11 +1,14 @@
 import { Box, Button, Container, Grid2, Typography, Divider } from "@mui/material";
 
 import bancardImg from '../assets/pago-bancard.jpg'
-import logoImg from '../assets/filpyhdsinfondo.png'
+import logoImg from '../assets/farmaShop/cropped-Farmashop-astra-180-x-60.png'
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import FacebookIcon from '@mui/icons-material/Facebook';
 
 const Footer = () => {
 
-  const numeroCelular = "+595 983 871004"
+  const numeroCelular = "+595 986 703000"
 
   return (
     <>
@@ -41,21 +44,25 @@ const Footer = () => {
                                         style={{ width: '200px', marginBottom: '1rem' }}
                                     />
                                     <Typography variant="body1" fontWeight="600">
-                                        Lámanos desde tu celular:
+                                        Lámanos desde tu celular o escribínos al Whatsapp:
                                     </Typography>
-                                    <Button 
-                                        variant="contained" 
-                                        sx={{ 
-                                            alignSelf: 'flex-start',
-                                            backgroundColor: '#c14c49',
-                                            '&:hover': { backgroundColor: '#a33c3a' }
-                                        }}
-                                    >
-                                        Llamar ahora
-                                    </Button>
-                                    <Typography variant="body1">
-                                        O escribinos al {numeroCelular}
-                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <WhatsAppIcon sx={{ color: '#25D366', fontSize: 35 }} />
+                                        <Typography variant="h6">
+                                            {numeroCelular}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', gap: 2 }}>
+                                        <a href="https://www.instagram.com/farmashop.paraguay/" target="_blank" rel="noopener noreferrer">
+                                            <InstagramIcon sx={{ 
+                                                fontSize: 35,
+                                                color: '#FE0464',
+                                            }} />
+                                        </a>
+                                        <a href="https://www.facebook.com/Farmashop.paraguay/?locale=es_LA" target="_blank" rel="noopener noreferrer">
+                                            <FacebookIcon sx={{ color: '#0866FF', fontSize: 35 }} />
+                                        </a>
+                                    </Box>
                                 </Box>
                             </Grid2>
 
@@ -80,9 +87,9 @@ const Footer = () => {
                                 </Typography>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                     {['Sucursales', 'Términos y Condiciones', 'Métodos de pago', 'Preguntas frecuentes'].map((item) => (
-                                    <Typography key={item} variant="body2" sx={{ cursor: 'pointer' }}>
-                                        {item}
-                                    </Typography>
+                                        <Typography key={item} variant="body2" sx={{ cursor: 'pointer' }}>
+                                            {item}
+                                        </Typography>
                                     ))}
                                 </Box>
                             </Grid2>

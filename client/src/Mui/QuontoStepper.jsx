@@ -17,16 +17,16 @@ export const QontoConnector = styled(StepConnector)(({ theme }) => ({
   },
   [`&.${stepConnectorClasses.active}`]: {
     [`& .${stepConnectorClasses.line}`]: {
-      borderColor: '#D73A35',
+      borderColor: '#D4459F',
     },
   },
   [`&.${stepConnectorClasses.completed}`]: {
     [`& .${stepConnectorClasses.line}`]: {
-      borderColor: '#D73A35',
+      borderColor: '#D4459F',
     },
   },
   [`& .${stepConnectorClasses.line}`]: {
-    borderColor: '#eaeaf0',
+    borderColor: '#D4459F',
     borderTopWidth: 3,
     borderRadius: 1,
     ...theme.applyStyles('dark', {
@@ -42,7 +42,7 @@ export const QontoStepIconRoot = styled('div')(({ theme }) => ({
   height: 22,
   alignItems: 'center',
   '& .QontoStepIcon-completedIcon': {
-    color: '#D73A35',
+    color: '#D4459F',
     zIndex: 1,
     fontSize: 18,
   },
@@ -50,7 +50,7 @@ export const QontoStepIconRoot = styled('div')(({ theme }) => ({
     width: 8,
     height: 8,
     borderRadius: '50%',
-    backgroundColor: 'currentColor',
+    backgroundColor: '#FF93D5',
   },
   ...theme.applyStyles('dark', {
     color: theme.palette.grey[700],
@@ -59,7 +59,7 @@ export const QontoStepIconRoot = styled('div')(({ theme }) => ({
     {
       props: ({ ownerState }) => ownerState.active,
       style: {
-        color: '#D73A35',
+        color: '#D4459F',
       },
     },
   ],

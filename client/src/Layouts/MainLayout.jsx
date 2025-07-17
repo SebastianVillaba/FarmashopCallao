@@ -20,6 +20,8 @@ import CartView from '../Components/CartView';
 import Footer from '../Components/Footer';
 import logoImg from '../assets/farmaShop/cropped-Logo-Farmashop-Horizontal-blanco.png'
 import fondo from '../assets/farmaShop/barra-principal.png'
+import FloatingBubble from '../Components/FloatingBubble';
+import { buscarProductos } from '../redux/searchSlice';
 
 function ElevationScroll(props) {
     
@@ -92,10 +94,26 @@ const SearchBar = styled(TextField)(({ theme }) => ({
 }));
 
 export default function MainLayout(props) {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const showCart = useSelector(state => state.carrito.showCart);
-  const cartData = useSelector(state => state.carrito.cartData)
-  const navigate = useNavigate()
+  const cartData = useSelector(state => state.carrito.cartData);
+  const navigate = useNavigate();
+
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      dispatch(buscarProductos(searchTerm));
+      navigate('/catalogo'); // Navega a la página de catálogo
+    }
+  };
+
+  // Manejar tecla Enter en el campo de búsqueda
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <React.Fragment>
@@ -123,24 +141,26 @@ export default function MainLayout(props) {
                     alignItems: 'center',
                     color: '#fff',
                     '&:hover': {
-                        color: '#3c52b2'
+                        color: '#ffd3ee'
                     },
                 }}>
                     <FormatListBulletedIcon sx={{ fontSize: '1.8rem' }}/>
                     Categorias
                 </Typography>
-                <Box >
+                <Box>
                   <SearchBar 
-                      variant='standard'
-                      placeholder='Buscar producto'
-                      size='medium'
-                      sx={{
-                        my: 1
-                      }}
+                    variant='standard'
+                    placeholder='Buscar producto'
+                    size='medium'
+                    sx={{ my: 1 }}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
-                  <IconButton sx={{
-                        my: 1
-                      }}>
+                  <IconButton 
+                    sx={{ my: 1 }}
+                    onClick={handleSearch}
+                  >
                     <SearchIcon />
                   </IconButton>
                 </Box>
@@ -161,7 +181,7 @@ export default function MainLayout(props) {
               gap: 5,
               mx: 4
             }}>
-                <Button sx={{
+                {/* <Button sx={{
                     transition: 'color 0.5s',
                     fontSize: '0.7rem',
                     gap: 1.2,
@@ -187,9 +207,18 @@ export default function MainLayout(props) {
                         borderRadius: '12px'
                     }}>
                         <PersonIcon />
-                        Ingresar
                     </Box>
-                </Button>
+                </Button> */}
+                <IconButton sx={{
+                   fontSize: 'small',
+                   display: 'flex',
+                   justifyContent: 'center',
+                   alignItems: 'center',
+                   gap: 1,
+                   color: 'white'
+                 }}>
+                   <PersonIcon />
+                </IconButton>
                 <Box>
                   <IconButton sx={{
                     fontSize: 'small',
@@ -213,7 +242,7 @@ export default function MainLayout(props) {
                       fontSize: 'small',
                       color: 'white',                    
                     }}>
-                    <StyledBadge badgeContent={cartData.length} color='error'>
+                    <StyledBadge badgeContent={cartData.length} color='primary'>
                       <ShoppingCartIcon/>
                     </StyledBadge>
                   </IconButton>
@@ -243,6 +272,10 @@ export default function MainLayout(props) {
         </AppBar>
       </ElevationScroll>
       <Toolbar />
+      <FloatingBubble 
+        phoneNumber="595986703000"
+        message="Hola, les escribo desde la web de Farmashop!"
+      />
       <Box sx={{ width: '100%', overflowX: 'hidden', backgroundColor: '#f9f9f9' }}>
         <Outlet />
       </Box>

@@ -7,41 +7,42 @@ import AdvertiseMain from "../Components/AdvertiseMain";
 import ProductosDestacados from "../Components/ProductosDestacados";
 import CuadrosImagenes from "../Components/CuadrosImagenes"
 import DiscountHome from "../Components/DiscountHome";
+import ComprarCategoria from "../Components/ComprarCategoria";
 
 const productosOferta = [
     {
         codigo: "404303",
         idProducto: 259,
         nombreMarca: "CATERPILLAR",
-        nombreMercaderia: "WIX FILTRO DE AIRE",
+        nombreMercaderia: "KOTEX NOCHE",
         precio: 431200
     },
     {
         codigo: "404304",
         idProducto: 260,
         nombreMarca: "CATERPILLAR",
-        nombreMercaderia: "WIX FILTRO DE ACEITE",
+        nombreMercaderia: "KOTEX DIA",
         precio: 431200
     },
     {
         codigo: "404305",
         idProducto: 261,
         nombreMarca: "CATERPILLAR",
-        nombreMercaderia: "WIX FILTRO DE COMBUSTIBLE",
+        nombreMercaderia: "KOTEX TARDE",
         precio: 431200
     },
     {
         codigo: "404306",
         idProducto: 262,
         nombreMarca: "CATERPILLAR",
-        nombreMercaderia: "WIX FILTRO DE HIDRAULICO",
+        nombreMercaderia: "KOTEX NOCHE PLUS",
         precio: 431200
     },
     {
         codigo: "404307",
         idProducto: 263,
         nombreMarca: "CATERPILLAR",
-        nombreMercaderia: "WIX FILTRO DE AIRE",
+        nombreMercaderia: "KOTEX DIA PLUS",
         precio: 431200
     },
 ]
@@ -83,9 +84,12 @@ const HomePage = () => {
           titulo={'Productos Destacados'} 
           productos={productosOferta}
         />
-        <Container>
-            <CuadrosImagenes titulo={'Nuestras marcas'}/>
-        </Container>
+        <CuadrosImagenes/>
+        <ProductosDestacados
+          titulo={'Productos en oferta'}
+          productos={productosOferta}
+        />
+        <ComprarCategoria />
     </Box>
   );
 };

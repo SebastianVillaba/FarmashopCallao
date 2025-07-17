@@ -28,6 +28,14 @@ import {
 } from "../redux/cartSlice"
 import { useNavigate } from "react-router-dom"
 
+export const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-PY', { // ⚠️ ¡Cambia a 'es-PY'!
+        style: 'currency',
+        currency: 'PYG',
+        maximumFractionDigits: 0
+      }).format(value);
+};
+
 const CartPage = () => {
   const dispatch = useDispatch()
   const cartData = useSelector((state) => state.carrito.cartData)
@@ -39,7 +47,6 @@ const CartPage = () => {
   // subtotales
   const subtotal = cartData
     .reduce((acc, item) => acc + item.precio * item.cantidad, 0)
-    .toLocaleString("es-ES")
   const total = subtotal
 
   // handler para "seleccionar todo"
@@ -214,7 +221,7 @@ const CartPage = () => {
                           </Box>
                         </TableCell>
                         <TableCell align="right">
-                          Gs {(item.precio * item.cantidad).toLocaleString("es-ES")}
+                          {formatCurrency(item.precio * item.cantidad)}
                         </TableCell>
                       </TableRow>
                     )
@@ -257,11 +264,11 @@ const CartPage = () => {
           <Paper variant="outlined" sx={{ p: 3, width: 300, bgcolor: "background.paper" }}>
             <Box display="flex" justifyContent="space-between" mb={1}>
               <Typography color="text.secondary">Subtotal</Typography>
-              <Typography>Gs {subtotal}</Typography>
+              <Typography>{formatCurrency(subtotal)}</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mb={3}>
               <Typography variant="h6">Total</Typography>
-              <Typography variant="h6">Gs {total}</Typography>
+              <Typography variant="h6">{formatCurrency(total)}</Typography>
             </Box>
             <Divider sx={{ mb: 2 }} />
             <Button 
@@ -269,7 +276,9 @@ const CartPage = () => {
               color="error"
               fullWidth
               onClick={() => {
-                
+                if (cartData.length) {
+                  navigate('/checkout')
+                } else navigate('/catalogo')
               }}
             >
               Continuar compra

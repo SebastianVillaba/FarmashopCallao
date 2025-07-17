@@ -5,22 +5,7 @@ export const probarSql = async (req, res) => {
     try {
         const { id } = req.query;
         const result = await executeRequest({
-            query: `SELECT 
-                        p.idProducto,
-                        p.nombreProducto,
-                        SUM(s.cantidad) AS stockTotal,
-                        p.codigo,
-                        m.nombreMarca
-                    FROM 
-                        stock s
-                    INNER JOIN 
-                        producto p ON s.idProducto = p.idProducto
-                    INNER JOIN
-                        marca m ON p.idMarca = m.idMarca
-                    WHERE 
-                        s.idProducto = ${id}
-                    GROUP BY 
-                        p.idProducto, p.nombreProducto, p.codigo, m.nombreMarca;`,
+            query: `SELECT * FROM v_producto WHERE idTipoProducto = 2`,
             isStoredProcedure: false
         });
     
