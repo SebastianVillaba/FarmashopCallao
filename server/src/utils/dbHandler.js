@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const config = {
-  server: process.env.DB_IP_EXTERNA, //process.env.DB_IP_LAN,
+  server: /*process.env.DB_IP_EXTERNA */process.env.DB_IP_LAN,
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
