@@ -23,7 +23,7 @@ import { styled } from '@mui/material/styles';
 import { QontoConnector, QontoStepIcon } from "../Mui/QuontoStepper";
 import { useSelector } from "react-redux";
 import FarmaTextField from "../Mui/TextField/FarmaTextField";
-import { formatCurrency } from "./CartPage";
+import { formatCurrency } from "../utils/formatCurrency"
 import FarmaSelect from "../Mui/TextField/FarmaSelect";
 
 // Componentes estilizados
@@ -478,8 +478,8 @@ const CheckoutPage = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: '140vh', margin: 'auto', p: 3 }}>
-      <Stepper activeStep={activeStep} alternativeLabel sx={{ mt: 7, mb: 4 }} connector={<QontoConnector />}>
+    <Box sx={{ maxWidth: { xs: '100%', lg: '1200px' }, margin: 'auto', p: { xs: 2, md: 3 } }}>
+      <Stepper activeStep={activeStep} alternativeLabel sx={{ mt: { xs: 3, md: 7 }, mb: { xs: 2, md: 4 } }} connector={<QontoConnector />}>
         {steps.map((label) => (
           <Step key={label}>
             <StepLabel StepIconComponent={QontoStepIcon}>{label}</StepLabel>
@@ -487,8 +487,8 @@ const CheckoutPage = () => {
         ))}
       </Stepper>
       
-      <Box sx={{ display: 'flex', gap: 4, justifyContent: 'flex-start' }}>
-        <Box sx={{ borderRadius: 2, bgcolor: 'background.paper', boxShadow: 1, width: '100vh', border: '1px solid rgba(0, 0, 0, 0.20)' }}>
+      <Box sx={{ display: 'flex', gap: { xs: 2, md: 4 }, justifyContent: 'flex-start', flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box sx={{ borderRadius: 2, bgcolor: 'background.paper', boxShadow: 1, width: { xs: '100%', md: '70%' }, border: '1px solid rgba(0, 0, 0, 0.20)' }}>
           <Box sx={{
             p: 2.5,
             borderBottom: '1px solid rgba(0, 0, 0, 0.20)'
@@ -498,14 +498,14 @@ const CheckoutPage = () => {
             </Typography>
           </Box>
           <Box sx={{
-            p: 3
+            p: { xs: 2, md: 3 }
           }}>
             {getStepContent(activeStep)}
           </Box>
         </Box>
 
         {activeStep < 4 && (
-          <Paper sx={{ bgcolor: 'background.paper', minWidth: '35vh', height: '100%', border: '1px solid rgba(0, 0, 0, 0.20)' }}>
+          <Paper sx={{ bgcolor: 'background.paper', width: { xs: '100%', md: '30%' }, height: '100%', border: '1px solid rgba(0, 0, 0, 0.20)' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', mb: 1 }}>
               <Box sx={{
                 borderBottom: '1px solid rgba(0, 0, 0, 0.20)',
@@ -561,7 +561,7 @@ const CheckoutPage = () => {
                 }}/>
                 <Box sx={{
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: { xs: 'column', md: 'column' }
                 }}>
                   <StyledFormControlLabel
                     control={<Checkbox />}
@@ -571,7 +571,7 @@ const CheckoutPage = () => {
                     control={<Checkbox required />}
                     label="Acepto las políticas de devolución"
                   />
-                  <Button variant="contained" onClick={handleNext} sx={{ my: 2 }}>
+                  <Button fullWidth variant="contained" onClick={handleNext} sx={{ my: 2 }}>
                     {activeStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
                   </Button>
                 </Box>

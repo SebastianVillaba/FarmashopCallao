@@ -1,8 +1,7 @@
 // HomePage.jsx
-import { useState } from "react";
-import { Box, Container } from "@mui/material";
+import { useRef, useState } from "react";
+import { Box, Container, IconButton } from "@mui/material";
 import HomeImageSlider from "../Components/HomeImageSlider";
-import IntroduccionEmpresa from "../Components/IntroduccionEmpresa";
 import AdvertiseMain from "../Components/AdvertiseMain";
 import ProductosDestacados from "../Components/ProductosDestacados";
 import CuadrosImagenes from "../Components/CuadrosImagenes"
@@ -45,6 +44,20 @@ const productosOferta = [
         nombreMercaderia: "KOTEX DIA PLUS",
         precio: 431200
     },
+    {
+        codigo: "404307",
+        idProducto: 263,
+        nombreMarca: "CATERPILLAR",
+        nombreMercaderia: "KOTEX DIA PLUS PLUS",
+        precio: 431200
+    },
+    {
+      codigo: "404307",
+      idProducto: 263,
+      nombreMarca: "CATERPILLAR",
+      nombreMercaderia: "KOTEX DIA PLUS PLUS",
+      precio: 431200
+  }
 ]
 
 const descuentosDisp = [  
@@ -54,6 +67,14 @@ const descuentosDisp = [
 const HomePage = () => {
   const [showMainPopup, setShowMainPopup] = useState(true);
   const [showMiniWindow, setShowMiniWindow] = useState(false);
+  const descuentosRef = useRef(null);
+
+  const scrollDescuentos = (direction) => {
+    const container = descuentosRef.current;
+    if (!container) return;
+    const amount = Math.max(200, Math.floor(container.clientWidth * 0.8));
+    container.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  };
 
   const handleCloseMain = () => {
     setShowMainPopup(false);
@@ -73,13 +94,30 @@ const HomePage = () => {
           onCloseMini={handleCloseMini}
         />
         <HomeImageSlider />
-        <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', alignItems: 'center' }}>
-          {
-            descuentosDisp.map((descuento, index) => (
+        <Box sx={{ position: 'relative', my: 2 }}>
+          <Box
+            ref={descuentosRef}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexWrap: 'nowrap',
+              gap: 2,
+              px: 2,
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              '&::-webkit-scrollbar': { display: 'none' }
+            }}
+          >
+            {
+              descuentosDisp.map((descuento, index) => (
               <DiscountHome key={index} discount={descuento} />
-            ))
-          }
-        </Box>
+              ))
+            }
+          </Box>
+        </Box>  
         <ProductosDestacados 
           titulo={'Productos Destacados'} 
           productos={productosOferta}

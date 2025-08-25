@@ -49,9 +49,11 @@ const CatalogoPage = () => {
         <CustomBreadcrumbs />
       </Box>
       
-      <Box sx={{ display: "flex", gap: 2.5 }}>
-        <SideCategorias />
-          <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: 'column', md: 'row' }, gap: 2.5 }}>
+        <Box sx={{ width: { xs: '100%', md: '300px' }, flexShrink: 0, mb: { xs: 2, md: 0 }}}>
+          <SideCategorias />
+        </Box>
+        <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h4" sx={{ color: '#d35fa7' }}>
               {palabra ? `Resultados para: "${palabra}"` : 'Catálogo de productos'}
             </Typography>

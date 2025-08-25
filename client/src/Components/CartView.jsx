@@ -11,9 +11,9 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteProductoCarrito } from '../redux/cartSlice';
 import { useNavigate } from 'react-router-dom';
-import { formatCurrency } from '../Pages/CartPage';
+import { formatCurrency } from '../utils/formatCurrency';
 
-const CartView = () => {
+const CartView = ({ hideActions = false }) => {
 
     const cartData = useSelector(state => state.carrito.cartData);
     const navigate = useNavigate()
@@ -21,7 +21,11 @@ const CartView = () => {
         <Box>
             <Box sx={{ 
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gridTemplateColumns: {
+                    xs: '1fr',
+                    sm: '1fr',
+                    md: '1fr'
+                },
                 gap: 2,
                 p: 2
             }}>
@@ -44,51 +48,55 @@ const CartView = () => {
                     )))
                 }
             </Box>
-            <Box sx={{
-                p: 2,
-                borderTop: '2px solid #D5DAE0',
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center"
-            }}>
-                <Typography variant='subtitle1' fontWeight='500' color='black'>
-                    Subtotal: {formatCurrency(cartData.reduce((acc, item) => acc + (item.precio * item.cantidad), 0))}
-                </Typography>
-            </Box>
-            <Box sx={{
-                p: 2,
-                borderTop: '2px solid #D5DAE0',
-                display: "flex",
-                flexDirection: 'column',
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 2
-            }}>
-                <Button 
-                    fullWidth
-                    sx={{
-                        border: "1.5px solid rgba(0, 0, 0, 0.5)",
-                        borderRadius: 20,
-                        color: 'rgba(0, 0, 0, 0.7)'
-                    }}
-                    onClick={() => navigate('/cart')}
-                >
-                    Ver el carrito
-                </Button>
-                <Button 
-                    variant='contained'
-                    fullWidth
-                    sx={{
-
-                        borderRadius: 20,
-                        backgroundColor: "#D4459F",
-                        color: "rgba(255, 255, 255, 1)"
-                    }}
-                    onClick={() => navigate('/checkout')}
-                >
-                    Comprar YA!
-                </Button>
-            </Box>
+            {!hideActions && (
+                <>
+                    <Box sx={{
+                        p: 2,
+                        borderTop: '2px solid #D5DAE0',
+                        display: "flex",
+                        justifyContent: { xs: 'space-between', sm: 'center' },
+                        alignItems: "center"
+                    }}>
+                        <Typography variant='subtitle1' fontWeight='500' color='black'>
+                            Subtotal: {formatCurrency(cartData.reduce((acc, item) => acc + (item.precio * item.cantidad), 0))}
+                        </Typography>
+                    </Box>
+                    <Box sx={{
+                        p: 2,
+                        borderTop: '2px solid #D5DAE0',
+                        display: "flex",
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        justifyContent: "center",
+                        alignItems: "stretch",
+                        gap: 1.5
+                    }}>
+                        <Button 
+                            fullWidth
+                            sx={{
+                                border: "1.5px solid rgba(0, 0, 0, 0.5)",
+                                borderRadius: 20,
+                                color: 'rgba(0, 0, 0, 0.7)'
+                            }}
+                            onClick={() => navigate('/cart')}
+                        >
+                            Ver el carrito
+                        </Button>
+                        <Button 
+                            variant='contained'
+                            fullWidth
+                            sx={{
+        
+                                borderRadius: 20,
+                                backgroundColor: "#D4459F",
+                                color: "rgba(255, 255, 255, 1)"
+                            }}
+                            onClick={() => navigate('/checkout')}
+                        >
+                            Comprar YA!
+                        </Button>
+                    </Box>
+                </>
+            )}
         </Box>
     );
 };
@@ -136,11 +144,11 @@ const CartProduct = ({ producto }) => {
                     }}
                 />
                 <Box sx={{ marginBottom: '12px', color: "black"}}>
-                    <Typography variant='body1'>
+                    <Typography variant='body1' sx={{ textAlign: 'left' }}>
                         {producto.nombreMercaderia}
                     </Typography>
                     <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
-                        {producto.cantidad} x {formatCurrency(producto.precio)} {/* 💵 Formatea el precio */}
+                        {producto.cantidad} x {formatCurrency(producto.precio)} 
                     </Typography>
                 </Box>
             </Box>

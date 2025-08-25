@@ -19,7 +19,7 @@ const Footer = () => {
                 maxWidth={false}
                 disableGutters
                 sx={{
-                    py: 4, 
+                    py: { xs: 3, md: 4 }, 
                     width: '100%', 
                     px: { xs: 2, sm: 4 }
                 }}
@@ -34,10 +34,10 @@ const Footer = () => {
                     }}>
 
                         {/* Sección superior */}
-                        <Grid2 container spacing={24} sx={{ mb: 4 }}>
+                        <Grid2 container spacing={{ xs: 6, md: 12, lg: 24 }} sx={{ mb: 4 }}>
                             {/* Columna 1 - Logo y contacto */}
                             <Grid2 item xs={12} md={4}>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: { xs: 'center', md: 'flex-start' }, textAlign: { xs: 'center', md: 'left' } }}>
                                     <img 
                                         src={logoImg}
                                         alt="Logo" 
@@ -67,7 +67,7 @@ const Footer = () => {
                             </Grid2>
 
                             {/* Columna 2 - Institucional */}
-                            <Grid2 item xs={6} md={4}>
+                            <Grid2 item xs={12} sm={6} md={4}>
                                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                                     Institucional
                                 </Typography>
@@ -81,7 +81,7 @@ const Footer = () => {
                             </Grid2>
 
                                 {/* Columna 3 - Atención al cliente */}
-                            <Grid2 item xs={6} md={4}>
+                            <Grid2 item xs={12} sm={6} md={4}>
                                 <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
                                     Atención al cliente
                                 </Typography>
@@ -99,8 +99,8 @@ const Footer = () => {
                     {/* Sección inferior */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                         {/* Métodos de pago */}
-                        <Box sx={{ display: 'flex', gap: 3 }}>
-                            <img src={bancardImg} alt="Metodos de pago" />
+                        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <img src={bancardImg} alt="Metodos de pago" style={{ maxWidth: '100%', height: 'auto' }} />
                         </Box>
 
                         {/* Texto legal */}

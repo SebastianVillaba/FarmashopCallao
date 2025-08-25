@@ -9,7 +9,7 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { Outlet, useNavigate } from 'react-router-dom';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import { Badge, Button, Icon, IconButton, styled, TextField } from '@mui/material';
+import { Badge, Button, Icon, IconButton, styled, TextField, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
@@ -100,6 +100,9 @@ export default function MainLayout(props) {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const toggleMenu = (open) => () => setIsMenuOpen(open);
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -119,105 +122,99 @@ export default function MainLayout(props) {
     <React.Fragment>
       <CssBaseline />
       <ElevationScroll {...props}>
-        <AppBar>
-          <Toolbar sx={{ backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}> 
+        <AppBar position="fixed">
+          <Toolbar sx={{
+            backgroundImage: `url(${fondo})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            height: 'auto',
+            minHeight: '80px',
+            flexWrap: 'wrap',
+            gap: 2,
+            p: { xs: 1, md: 0 }
+           }}>
             <Box sx={{
                 display: 'flex',
-                flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',  
-                gap: 4,
+                order: { xs: 3, md: 1 },
+                width: { xs: '100%', md: 'auto' },
+                justifyContent: { xs: 'center', md: 'flex-start' }
             }}>
                 <Typography
-                  variant='h6' 
-                  onClick={() => navigate('/catalogo')} 
+                  variant='h6'
+                  onClick={() => navigate('/catalogo')}
                   sx={{
-                    transition: 'color 0.5s',
-                    fontSize: '0.9rem',
+                    display: { xs: 'none', lg: 'flex' },
+                    alignItems: 'center',
                     gap: 1.2,
                     cursor: 'pointer',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
                     color: '#fff',
-                    '&:hover': {
-                        color: '#ffd3ee'
-                    },
+                    fontSize: '0.9rem',
+                    '&:hover': { color: '#ffd3ee' },
                 }}>
                     <FormatListBulletedIcon sx={{ fontSize: '1.8rem' }}/>
                     Categorias
                 </Typography>
-                <Box>
-                  <SearchBar 
+                <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, maxWidth: { xs: '100%', sm: '300px' } }}>
+                  <SearchBar
                     variant='standard'
                     placeholder='Buscar producto'
-                    size='medium'
-                    sx={{ my: 1 }}
+                    size='small'
+                    fullWidth
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={handleKeyDown}
                   />
-                  <IconButton 
-                    sx={{ my: 1 }}
+                  <IconButton
                     onClick={handleSearch}
                   >
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: 'white' }}/>
                   </IconButton>
                 </Box>
             </Box>
             <Box
-                  component='img'
-                  src={logoImg}
-                  alt='Logo empresa'
-                  onClick={() => navigate('/home')} 
-                  sx={{
-                    my: 1,
-                    cursor: 'pointer',
-                  }}
+              component='img'
+              src={logoImg}
+              alt='Logo empresa'
+              onClick={() => navigate('/home')}
+              sx={{
+                height: { xs: '35px', md: '45px' },
+                cursor: 'pointer',
+                order: { xs: 1, md: 2 },
+              }}
             />
+            {/*ESTE ES EL BOX DE ICONOS*/}
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 5,
-              mx: 4
-            }}>
-                {/* <Button sx={{
-                    transition: 'color 0.5s',
-                    fontSize: '0.7rem',
-                    gap: 1.2,
-                    textTransform: 'capitalize',
-                    color: '#fff',
-                    '&:hover': {
-                        color: '#3c52b2'
-                    },
-                    padding: 0,
-                    height: '80%',
-                    borderRadius: '12px'
-                }}>
-                    <Box sx={{
-                        backgroundColor: 'white',
-                        width: '100%',
-                        height: '80%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: 0.7,
-                        color: '#637d89',
-                        padding: '4px',
-                        borderRadius: '12px'
-                    }}>
-                        <PersonIcon />
-                    </Box>
-                </Button> */}
-                <IconButton sx={{
+              gap: { xs: 2, md: 3 },
+              order: { xs: 2, md: 3 },
+            }}> 
+                {/* Botón de menú solo en pantallas chicas */}
+                <IconButton
+                  aria-label='abrir menú'
+                  onClick={toggleMenu(true)}
+                  sx={{
+                    display: { xs: 'flex', md: 'none' },
+                    color: 'white'
+                  }}    
+                >
+                  <FormatListBulletedIcon />
+                </IconButton>
+                <IconButton onClick={() => navigate('/auth/login')} sx={{
                    fontSize: 'small',
                    display: 'flex',
                    justifyContent: 'center',
                    alignItems: 'center',
                    gap: 1,
-                   color: 'white'
-                 }}>
-                   <PersonIcon />
+                    color: 'white',
+                    display: { xs: 'none', md: 'flex' }
+                }}>
+                  <PersonIcon />
                 </IconButton>
                 <Box>
                   <IconButton sx={{
@@ -226,7 +223,8 @@ export default function MainLayout(props) {
                     justifyContent: 'center',
                     alignItems: 'center',
                     gap: 1,
-                    color: 'white'
+                    color: 'white',
+                    display: { xs: 'none', md: 'flex' }
                   }}>
                     <FavoriteBorderOutlinedIcon sx={{
                       color: 'white',
@@ -267,16 +265,66 @@ export default function MainLayout(props) {
                     <CartView />
                   </Box>
               )}
+              {/* Drawer lateral para móviles */}
+              <Drawer
+                anchor='left'
+                open={isMenuOpen}
+                onClose={toggleMenu(false)}
+              >
+                <Box
+                  sx={{ width: 260 }}
+                  role='presentation'
+                  onClick={toggleMenu(false)}
+                  onKeyDown={toggleMenu(false)}
+                >
+                  <List>
+                    <ListItemButton onClick={() => { setIsMenuOpen(false); navigate('/auth/login'); }}>
+                      <ListItemIcon>
+                        <PersonIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='Iniciar sesión' />
+                    </ListItemButton>
+                    <ListItemButton onClick={() => { setIsMenuOpen(false); }}>
+                      <ListItemIcon>
+                        <FavoriteBorderOutlinedIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='Productos favoritos' />
+                    </ListItemButton>
+                  </List>
+                  <Divider />
+                  <List>
+                    <ListItemButton onClick={() => { setIsMenuOpen(false); navigate('/home'); }}>
+                      <ListItemIcon>
+                        <FormatListBulletedIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='Inicio' />
+                    </ListItemButton>
+                    <ListItemButton onClick={() => { setIsMenuOpen(false); navigate('/catalogo'); }}>
+                      <ListItemIcon>
+                        <FormatListBulletedIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='Catálogo' />
+                    </ListItemButton>
+                    <ListItemButton onClick={() => { setIsMenuOpen(false); }}>
+                      <ListItemIcon>
+                        <FormatListBulletedIcon />
+                      </ListItemIcon>
+                      <ListItemText primary='Más opciones' />
+                    </ListItemButton>
+                  </List>
+                </Box>
+              </Drawer>
             </Box>
           </Toolbar>
         </AppBar>
       </ElevationScroll>
+      {/* Empuje para compensar AppBar fijo */}
       <Toolbar />
       <FloatingBubble 
         phoneNumber="595986703000"
         message="Hola, les escribo desde la web de Farmashop!"
       />
-      <Box sx={{ width: '100%', overflowX: 'hidden', backgroundColor: '#f9f9f9' }}>
+      <Box sx={{ width: '100%', overflowX: 'hidden', backgroundColor: '#f9f9f9', pt: { xs: 3, md: 0 } }}>
         <Outlet />
       </Box>
     <Box>

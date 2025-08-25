@@ -28,8 +28,9 @@ const CuadroImagenes = () => {
     const updateItemsToShow = () => {
         const width = window.innerWidth;
         if (width < 600) return 1;
-        if (width < 900) return 2;
-        return 3;
+        if (width < 960) return 2;
+        if (width < 1280) return 3;
+        return 4;
     };
 
     useEffect(() => {
@@ -102,12 +103,14 @@ const CuadroImagenes = () => {
                 maxWidth: '1350px',
                 position: 'relative'
             }}>
-                <IconButton 
+                <IconButton
                     onClick={prevSlide}
-                    sx={{ 
-                        position: 'absolute', 
-                        left: { xs: '-10px', sm: '-20px', md: '-30px' },
-                        zIndex: 1,
+                    sx={{
+                        position: 'absolute',
+                        left: { xs: 0, sm: 8, md: 16 },
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 2,
                         backgroundColor: 'rgba(255,255,255,0.7)',
                         '&:hover': {
                             backgroundColor: 'rgba(255,255,255,0.9)'
@@ -119,46 +122,34 @@ const CuadroImagenes = () => {
 
                 {/* Contenedor principal con overflow oculto */}
                 <Box ref={containerRef} sx={{
-                    display: 'flex',
                     width: '100%',
                     overflow: 'hidden',
-                    justifyContent: 'center',
-                    position: 'relative',
-                    height: '220px' // Ajusta según necesidad
                 }}>
                     {/* Contenedor animado */}
                     <Box sx={{
                         display: 'flex',
-                        position: 'absolute',
-                        left: 0,
-                        height: '100%',
-                        transform: `translateX(${-currentIndex * (100 / itemsToShow)}%)`,
                         transition: 'transform 0.5s ease-in-out',
+                        transform: `translateX(${-currentIndex * (100 / itemsToShow)}%)`,
                     }}>
                         {imagenes.map((imagen, index) => (
                             <Box key={index} sx={{
                                 flex: `0 0 ${100 / itemsToShow}%`,
-                                maxWidth: `${100 / itemsToShow}%`,
-                                padding: '0 10px',
                                 boxSizing: 'border-box',
-                                height: '100%',
-                                display: 'flex',
-                                alignItems: 'center'
+                                p: 1,
                             }}>
                                 <Box sx={{
-                                    position: 'relative',
-                                    borderRadius: '24px',
+                                    borderRadius: '16px',
                                     overflow: 'hidden',
                                     boxShadow: '0px 4px 10px rgba(0,0,0,0.1)',
                                     cursor: 'pointer',
                                     width: '100%',
-                                    height: '200px',
+                                    height: { xs: 150, sm: 180, md: 200 },
                                     transition: 'transform 0.3s',
                                     '&:hover': {
                                         transform: 'scale(1.03)'
                                     }
                                 }}>
-                                    <Box 
+                                    <Box
                                         component="img"
                                         src={imagen.src}
                                         alt="Imagen de promoción"
@@ -174,12 +165,14 @@ const CuadroImagenes = () => {
                     </Box>
                 </Box>
 
-                <IconButton 
+                <IconButton
                     onClick={nextSlide}
-                    sx={{ 
-                        position: 'absolute', 
-                        right: { xs: '-10px', sm: '-20px', md: '-30px' },
-                        zIndex: 1,
+                    sx={{
+                        position: 'absolute',
+                        right: { xs: 0, sm: 8, md: 16 },
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 2,
                         backgroundColor: 'rgba(255,255,255,0.7)',
                         '&:hover': {
                             backgroundColor: 'rgba(255,255,255,0.9)'

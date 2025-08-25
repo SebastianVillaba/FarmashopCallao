@@ -11,7 +11,7 @@ import SelectorCantidad from "../Components/SelectorCantidad";
 import { CenterFocusStrong, MoneyOffCsredSharp } from "@mui/icons-material";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { formatCurrency } from "./CartPage";
+import { formatCurrency } from "../utils/formatCurrency";
 import ProductosDestacados from "../Components/ProductosDestacados";
 
 const productOffline = {
@@ -62,7 +62,7 @@ const productosRelacionados = [
         nombreMarca: "CATERPILLAR",
         nombreMercaderia: "KOTEX DIA PLUS",
         precio: 431200
-    },
+    }
 ]
 
 
@@ -74,13 +74,22 @@ const DetalleProducto = () => {
     const [ error, setError ] = useState(null); 
     const [seleccionMoneda, setSeleccionMoneda] = useState('')
     const [ selectedIdx, setSelectedIdx ] = useState(0)
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const prevImg = () => {
         setSelectedIdx(i => (i - 1 + imagenesProducto.length) % imagenesProducto.length)
-      }
-      const nextImg = () => {
+    }
+    const nextImg = () => {
         setSelectedIdx(i => (i + 1) % imagenesProducto.length)
-      }
+    }
+
+    const handleNext = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const handlePrev = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
     
     const fetchProductById = async () => {  
         try {
@@ -111,13 +120,19 @@ const DetalleProducto = () => {
               <CustomBreadcrumbs />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Container sx={{ display: 'flex', flexDirection: 'row', gap: 4, marginBottom: 8 }}>
+                <Container sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    gap: 4,
+                    marginBottom: 8,
+                    alignItems: { xs: 'stretch', md: 'flex-start' }
+                }}>
                     {/* BOX PARA LAS IMAGENES */}
                     <Box sx={{
                         borderRadius: '30px',
                         border: '1px solid #cecece',
-                        minHeight: 640,
-                        width: 600,
+                        minHeight: { xs: 320, md: 640 },
+                        width: { xs: '100%', md: 600 },
                         display: 'flex',
                         justifyContent: 'center',
                         backgroundColor: '#ffffff',
@@ -142,16 +157,24 @@ const DetalleProducto = () => {
                             </IconButton>
                             {/* IMAGEN PRINCIPAL */}
                             <Box
-                                component="img"
-                                src={imagenesProducto[selectedIdx]}
-                                alt={`Imagen del producto en index ${selectedIdx + 1}`}
                                 sx={{
-                                    height: 438,
-                                    width: '100%',
-                                    borderRadius: '20%',
-                                    objectFit: 'contain'
-                                }}  
-                            />
+                                    transition: 'transform 0.5s ease-in-out', 
+                                    transform: `translateX(-${currentImageIndex * 100}%)`
+                                }}
+                            >
+                                <Box
+                                    component="img"
+                                    src={imagenesProducto[selectedIdx]}
+                                    alt={`Imagen del producto en index ${selectedIdx + 1}`}
+                                    sx={{
+                                        height: { xs: 240, sm: 320, md: 438 },
+                                        width: '100%',
+                                        borderRadius: '20%',
+                                        objectFit: 'contain'
+
+                                    }}  
+                                />
+                            </Box>
                             {/* FLECHA DERECHA */}
                             <IconButton
                                 onClick={nextImg}
@@ -184,8 +207,8 @@ const DetalleProducto = () => {
                                                 sx={{
                                                     borderRadius: '30px',
                                                     border: '1px solid #cecece',
-                                                    minHeight: 180,
-                                                    width: 160,
+                                                    minHeight: { xs: 100, sm: 140, md: 180 },
+                                                    width: { xs: 110, sm: 140, md: 160 },
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     backgroundColor: '#ffffff',
@@ -199,7 +222,7 @@ const DetalleProducto = () => {
                                                     src={imagen}
                                                     alt="Imagen pequeña del producto"
                                                     sx={{
-                                                        height: 180,
+                                                        height: { xs: 100, sm: 140, md: 180 },
                                                         width: '100%',
                                                         borderRadius: '20%',
                                                         objectFit: 'contain'
@@ -217,7 +240,7 @@ const DetalleProducto = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 1.5,
-                        marginTop: '18px'
+                        marginTop: { xs: 2, md: '18px' }
                     }}>
                         <Box sx={{
                             display: 'flex',
@@ -256,15 +279,13 @@ const DetalleProducto = () => {
                                     <Typography variant="body2"> Sin Stock</Typography>
                                 </Box>
                         }
-                        <Typography variant="h3">
+                        <Typography variant="h3" sx={{ fontSize: { xs: '1.6rem', sm: '2rem', md: '2.4rem' } }}>
                             {product.nombreMercaderia}
                         </Typography>
                         <Typography variant="body1">
                             <strong>Código: {product.codigo}</strong>
                         </Typography>
-                        <Box sx={{
-                            gap: 4
-                        }}>
+                        <Box sx={{ gap: 4 }}>
                             <Typography variant="body1">
                                 <strong>Precio: {formatCurrency(product.precio)}</strong> 
                             </Typography>

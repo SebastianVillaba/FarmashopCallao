@@ -9,7 +9,7 @@ import image3 from '../assets/farmaShop/Banner-web-serum-pharmacare.jpg'
 
 const images = [ image1, image2, image3 ];
 
-const HomePage = () => {
+const HomeImageSlider = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const handleNext = () => {
@@ -24,17 +24,17 @@ const HomePage = () => {
     <Box sx={{
       position: 'relative',
       width: '100vw',
-      height: '30vw',
+      height: { xs: '56.25vw', sm: '40vw', md: '30vw' }, 
+      maxHeight: { xs: 400, md: 600 },
       left: '50%',
-      right: '50%',
-      marginLeft: '-50vw',
-      marginRight: '-50vw',
+      transform: 'translateX(-50%)',
       overflow: 'hidden'
     }}>
       {/* Contenedor del slider */}
       <Box sx={{
         display: 'flex',
-        transition: 'transform 0.5s ease-in-out',
+        height: '100%',
+        transition: 'transform 0.5s ease-in-out', 
         transform: `translateX(-${currentImageIndex * 100}%)`,
       }}>
         {images.map((image, index) => (
@@ -43,8 +43,9 @@ const HomePage = () => {
             component="img"
             src={image}
             sx={{
-              width: '100vw',
-              height: '30vw',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
               flexShrink: 0
             }}
             alt={`Slide ${index + 1}`}
@@ -86,4 +87,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default HomeImageSlider;
