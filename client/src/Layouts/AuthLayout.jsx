@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box, Container, Paper } from '@mui/material';
 import { Outlet } from 'react-router-dom';
-import logoImg from '../assets/farmaShop/cropped-Logo-Farmashop-Horizontal-blanco.png';
 
 export default function AuthLayout() {
   return (

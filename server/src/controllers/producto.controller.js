@@ -186,7 +186,7 @@ const getProductoByCategoria = async (req, res) => {
     });
 
     if (!result.recordset || result.recordset.length === 0) {
-      return res.status(200).json({
+      return res.status(404).json({
         mensaje: "No se encontraron productos para esta categoría",
         respuesta: []
       });

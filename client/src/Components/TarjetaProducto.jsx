@@ -1,5 +1,5 @@
 import { Button, Card, CardActions, CardContent, CardMedia, Collapse, Fade, Typography } from "@mui/material";
-import caniaImage from 'C:/Temp/430495.JPG';
+import caniaImage from '../assets/430495.webp';
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addProductoCarrito } from "../redux/cartSlice";
