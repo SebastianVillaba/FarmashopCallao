@@ -1,61 +1,28 @@
-import { Box } from '@mui/material';
-import { keyframes } from '@emotion/react';
+import { whatsappUrl } from '../lib/texto';
 
-const float = keyframes`
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-`;
+const WhatsAppLogo = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+    <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.38 9.38 0 0 1-1.44-5c0-5.19 4.23-9.41 9.42-9.41 2.51 0 4.88.98 6.65 2.76a9.35 9.35 0 0 1 2.75 6.66c0 5.19-4.23 9.41-9.41 9.41zm8.01-17.42A11.26 11.26 0 0 0 12.05.75C5.8.75.71 5.83.71 12.08c0 2 .52 3.95 1.52 5.66L.62 23.62l6.01-1.58a11.3 11.3 0 0 0 5.41 1.38h.01c6.25 0 11.34-5.08 11.34-11.33 0-3.03-1.18-5.87-3.32-8.01z" />
+  </svg>
+);
 
-const FloatingBubble = ({ phoneNumber, message, img, sx }) => {
-  const cleanPhoneNumber = (num) => {
-    // Eliminar todos los caracteres no numéricos excepto el signo +
-    return num.replace(/[^\d+]/g, '');
-  };
+export { WhatsAppLogo };
 
-  const handleClick = () => {
-    const cleanedNumber = cleanPhoneNumber(phoneNumber);
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanedNumber}&text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
+export default function FloatingBubble({ phoneNumber, message }) {
   return (
-    <Box
-      onClick={handleClick}
-      sx={{
-        position: 'fixed',
-        bottom: 40,
-        right: 40,
-        width: 60,
-        height: 60,
-        bgcolor: '#25D366',
-        borderRadius: '50%',
-        cursor: 'pointer',
-        boxShadow: 3,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'all 0.3s ease',
-        animation: `${float} 3s ease-in-out infinite`,
-        '&:hover': {
-          transform: 'scale(1.1)',
-          boxShadow: 6
-        },
-        zIndex: 1000,
-        ...sx
-      }}
+    <a
+      href={whatsappUrl(phoneNumber, message)}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Escribinos por WhatsApp"
+      className="group fixed right-4 bottom-20 z-30 flex items-center gap-2 lg:right-6 lg:bottom-6"
     >
-      {img || (
-        <svg width="32" height="32" viewBox="0 0 24 24" style={{ color: 'white' }}>
-          <path
-            fill="currentColor"
-            d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91c0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18l-3.12.82l.83-3.04l-.2-.31a8.264 8.264 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24c2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.23-8.22 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81c-.23-.08-.39-.12-.56.12c-.17.25-.64.81-.78.97c-.14.17-.29.19-.54.06c-.25-.12-1.05-.39-1.99-1.23c-.74-.66-1.23-1.47-1.38-1.72c-.14-.25-.02-.38.11-.51c.11-.11.25-.29.37-.43s.17-.25.25-.41c.08-.17.04-.31-.02-.43s-.56-1.34-.76-1.84c-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31c-.22.25-.86.85-.86 2.07c0 1.22.89 2.4 1.01 2.56c.12.17 1.75 2.67 4.23 3.74c.59.26 1.05.41 1.41.52c.59.19 1.13.16 1.56.1c.48-.07 1.47-.6 1.67-1.18c.21-.58.21-1.07.15-1.18s-.22-.16-.47-.28z"
-          />
-        </svg>
-      )}
-    </Box>
+      <span className="pointer-events-none hidden translate-x-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-ink-800 opacity-0 shadow-card-hover transition group-hover:translate-x-0 group-hover:opacity-100 lg:block">
+        ¿Te ayudamos?
+      </span>
+      <span className="grid h-14 w-14 place-items-center rounded-full bg-[#25d366] text-white shadow-lg shadow-[#25d366]/40 transition group-hover:scale-110 animate-float">
+        <WhatsAppLogo className="h-7 w-7" />
+      </span>
+    </a>
   );
-};
-
-export default FloatingBubble;
+}

@@ -1,148 +1,80 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
-import TarjetaProducto from "./TarjetaProducto";
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import TarjetaProducto, { TarjetaProductoSkeleton } from './TarjetaProducto';
+import { api } from '../lib/api';
 
-const ProductosDestacados = ({ titulo, productos }) => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [itemsToShow, setItemsToShow] = useState(1);
-    const containerRef = useRef(null);
-    const touchStartXRef = useRef(0);
-    const touchDeltaXRef = useRef(0);
+// Carrusel horizontal de productos con encabezado
+export function CarruselProductos({ titulo, subtitulo, verTodo, productos, cargando }) {
+  const [emblaRef, embla] = useEmblaCarousel({ align: 'start', slidesToScroll: 'auto', containScroll: 'trimSnaps' });
+  const [puede, setPuede] = useState({ prev: false, next: false });
 
-    const updateItemsToShow = () => {
-        const width = window.innerWidth;
-        if (width < 600) return 1; // móvil: solo 1
-        if (width < 960) return 2; // tablets chicas
-        if (width < 1280) return 3; // tablets grandes / laptop chica
-        return 5; // desktop amplio
-    }
+  useEffect(() => {
+    if (!embla) return;
+    const actualizar = () => setPuede({ prev: embla.canScrollPrev(), next: embla.canScrollNext() });
+    actualizar();
+    embla.on('select', actualizar).on('reInit', actualizar);
+    return () => embla.off('select', actualizar).off('reInit', actualizar);
+  }, [embla]);
 
-    useEffect(() => {
-        setItemsToShow(updateItemsToShow());
-        const handleResize = () => setItemsToShow(updateItemsToShow());
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+  if (!cargando && !productos.length) return null;
 
-    useEffect(() => {
-        const maxIndex = Math.max(0, productos.length - itemsToShow);
-        if (currentIndex > maxIndex) {
-            setCurrentIndex(maxIndex);
-        }
-    }, [itemsToShow, productos.length, currentIndex]);
+  const flecha = 'grid h-10 w-10 cursor-pointer place-items-center rounded-full border border-ink-200 bg-white text-ink-700 transition hover:border-brand-300 hover:text-brand-600 disabled:cursor-default disabled:opacity-40';
 
-    const nextSlide = () => {
-        const maxIndex = Math.max(0, productos.length - itemsToShow);
-        setCurrentIndex(prevIndex => (prevIndex >= maxIndex ? 0 : prevIndex + 1));
-    };
+  return (
+    <section>
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{titulo}</h2>
+          {subtitulo && <p className="mt-1 text-ink-500">{subtitulo}</p>}
+        </div>
+        <div className="flex items-center gap-2">
+          {verTodo && (
+            <Link to={verTodo} className="mr-2 hidden items-center gap-1 text-sm font-semibold text-brand-600 transition-all hover:gap-2 sm:flex">
+              Ver todo <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
+          <button type="button" className={flecha} disabled={!puede.prev} onClick={() => embla?.scrollPrev()} aria-label="Anterior">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button type="button" className={flecha} disabled={!puede.next} onClick={() => embla?.scrollNext()} aria-label="Siguiente">
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
 
-    const prevSlide = () => {
-        const maxIndex = Math.max(0, productos.length - itemsToShow);
-        setCurrentIndex(prevIndex => (prevIndex === 0 ? maxIndex : prevIndex - 1));
-    };
-    
-    const showButtons = productos.length > itemsToShow && itemsToShow > 1;
-
-    const handleTouchStart = (e) => {
-        touchStartXRef.current = e.touches[0].clientX;
-        touchDeltaXRef.current = 0;
-    };
-
-    const handleTouchMove = (e) => {
-        touchDeltaXRef.current = e.touches[0].clientX - touchStartXRef.current;
-    };
-
-    const handleTouchEnd = () => {
-        const threshold = 40; // píxeles para considerar swipe
-        if (touchDeltaXRef.current > threshold) {
-            prevSlide();
-        } else if (touchDeltaXRef.current < -threshold) {
-            nextSlide();
-        }
-        touchStartXRef.current = 0;
-        touchDeltaXRef.current = 0;
-    };
-
-    return (
-        <Box sx={{
-            my: 4,
-            mx: { xs: 2, md: 6, lg: 12 },
-            position: 'relative',
-
-            userSelect: 'none'
-        }}>
-            <Typography variant="h5" sx={{
-                mb: 3,
-                fontWeight: 500,
-                color: '#d4459f',
-                textAlign: { xs: 'center', md: 'left' }
-            }}>
-                {titulo}
-            </Typography>
-
-            <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                position: 'relative' 
-            }}>
-                {showButtons && (
-                    <IconButton
-                        onClick={prevSlide}
-                        sx={{
-                            position: 'absolute',
-                            left: { xs: -16, lg: -35 },
-                            zIndex: 2,
-                            backgroundColor: 'rgba(255,255,255,0.7)',
-                            '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' }
-                        }}
-                    >
-                        <ArrowBackIosIcon sx={{ color: '#d45fa7' }} />
-                    </IconButton>
-                )}
-
-                <Box
-                    ref={containerRef}
-                    sx={{ width: '100%', overflow: 'hidden' }}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    <Box sx={{
-                        display: 'flex',
-                        transition: 'transform 0.4s ease-in-out',
-                        transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)`
-                    }}>
-                        {productos.map((producto) => (
-                            <Box key={producto.idProducto} sx={{
-                                flex: `0 0 ${100 / itemsToShow}%`,
-                                boxSizing: 'border-box',
-                                p: 1.5
-                            }}>
-                                <TarjetaProducto producto={producto} />
-                            </Box>
-                        ))}
-                    </Box>
-                </Box>
-
-                {showButtons && (
-                    <IconButton
-                        onClick={nextSlide}
-                        sx={{
-                            position: 'absolute',
-                            right: { xs: -16, lg: -35 },
-                            zIndex: 2,
-                            backgroundColor: 'rgba(255,255,255,0.7)',
-                            '&:hover': { backgroundColor: 'rgba(255,255,255,0.9)' }
-                        }}
-                    >
-                        <ArrowForwardIosIcon sx={{ color: '#d45fa7' }} />
-                    </IconButton>
-                )}
-            </Box>
-        </Box>
-    );
+      <div ref={emblaRef} className="-mx-2 overflow-hidden px-2 py-2">
+        <div className="-ml-4 flex">
+          {(cargando ? Array.from({ length: 5 }) : productos).map((p, i) => (
+            <div key={p?.idProducto ?? i} className="min-w-0 flex-[0_0_50%] pl-4 sm:flex-[0_0_33.333%] lg:flex-[0_0_25%] xl:flex-[0_0_20%]">
+              {cargando ? <TarjetaProductoSkeleton /> : <TarjetaProducto producto={p} className="h-full" />}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
-export default ProductosDestacados;
+export default function ProductosDestacados() {
+  const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    api.get('/productos/destacados', { params: { limit: 15 } })
+      .then(({ data }) => setProductos(data.respuesta || []))
+      .catch(() => setProductos([]))
+      .finally(() => setCargando(false));
+  }, []);
+
+  return (
+    <CarruselProductos
+      titulo="Destacados de la semana"
+      subtitulo="Lo más elegido en nuestras farmacias"
+      verTodo="/catalogo"
+      productos={productos}
+      cargando={cargando}
+    />
+  );
+}

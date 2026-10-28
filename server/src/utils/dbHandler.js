@@ -19,7 +19,7 @@ const config = {
 
 let poolPromise;
 
-function getPool() {
+export function getPool() {
   if (!poolPromise) {
     poolPromise = new sql.ConnectionPool(config)
       .connect()
@@ -64,6 +64,26 @@ export async function executeRequest({
     return result;
   } catch (error) {
     console.error("Error en executeRequest:", error);
+    throw error;
+  }
+}
+
+// Ejecuta varias consultas dentro de una transacción.
+// El callback recibe una función para crear requests ligados a la transacción.
+export async function withTransaction(callback) {
+  const pool = await getPool();
+  const transaction = new sql.Transaction(pool);
+  await transaction.begin();
+  try {
+    const result = await callback(() => new sql.Request(transaction));
+    await transaction.commit();
+    return result;
+  } catch (error) {
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      console.error("Error al hacer rollback:", rollbackError);
+    }
     throw error;
   }
 }

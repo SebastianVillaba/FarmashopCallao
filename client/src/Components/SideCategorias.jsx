@@ -1,275 +1,121 @@
-import { Box, Divider, Typography, Grid2 } from '@mui/material';
-import MuiAccordion from '@mui/material/Accordion';
-import MuiAccordionSummary, {
-  accordionSummaryClasses,
-} from '@mui/material/AccordionSummary';
-import MuiAccordionDetails from '@mui/material/AccordionDetails';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import CircleIcon from '@mui/icons-material/Circle';
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
-import { styled } from '@mui/material/styles';
-import { useDispatch, useSelector } from 'react-redux';
-import { setCategoriaSeleccionada } from '../redux/utilsSlice.js';
-import { useFocus } from '../hooks/useFocusHook.js';
-import { buscarProductosPorCategoria, limpiarCategoria } from '../redux/searchSlice';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import * as Slider from '@radix-ui/react-slider';
+import { Check } from 'lucide-react';
+import { cn } from '../lib/cn';
+import { formatCurrency } from '../utils/formatCurrency';
+import { capitalizar } from '../lib/texto';
 
-
-const Accordion = styled((props) => (
-    <MuiAccordion disableGutters elevation={0} square {...props} />
-  ))(({ theme }) => ({
-
-}));
-
-const AccordionSummary = styled((props) => (
-    <MuiAccordionSummary
-      expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
-      {...props}
-    />
-  ))(({ theme }) => ({
-    borderBottom: '1px solid #D4459F',
-    backgroundColor: '#fce3f2',
-    flexDirection: 'row-reverse',
-    [`& .${accordionSummaryClasses.expandIconWrapper}.${accordionSummaryClasses.expanded}`]:
-      {
-        transform: 'rotate(90deg)',
-      },
-    [`& .${accordionSummaryClasses.content}`]: {
-      marginLeft: theme.spacing(1),
-    },
-    ...theme.applyStyles('dark', {
-      backgroundColor: '#fce3f2',
-    }),
-}));
-  
-const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
-    padding: theme.spacing(1),
-    borderTop: '1px solid rgba(0, 0, 0, .125)',
-    backgroundColor: '#fce3f2',
-    '&:hover': {
-        backgroundColor: '#fce3f2',
-        
-    }
-}));
-
-const descuentosOffline = [
-    { id: 1, nombre: "Descuento del 10%" },
-    { id: 2, nombre: "Descuento del 20%" },
-    { id: 3, nombre: "Descuento del 30%" },
-    { id: 4, nombre: "Descuento del 40%" },
-    { id: 5, nombre: "Descuento del 50%" }
-]
-
-const SideCategorias = () => {
-
-    // Hooks y utilitarios REDUX
-    const dispatch = useDispatch();
-    const categoriaSeleccionada = useSelector(state => state.utilitarios.categoriaSeleccionada);
-
-    // Hooks useState
-    const [ categories, setCategories ] = useState([]);
-    const [ marcas, setMarcas ] = useState([]);
-    const [ descuentos, setDescuento ] = useState([]);
-
-    //Hook navigate
-    const navigate = useNavigate();
-
-    const handleSelectCategory = (id) => {
-        dispatch(setCategoriaSeleccionada(id));
-        dispatch(limpiarCategoria()); // Limpiar búsqueda previa
-        dispatch(buscarProductosPorCategoria(id));
-        navigate('/catalogo'); // Navegar a la página de catálogo
-    };
-
-
-
-    const getCategories = async () => {
-        try {
-            const response = await axios.get("/api/productos/getCategorias");
-            console.log(response);
-            setCategories(response.data.respuesta);
-        } catch (error) {
-            console.error("Error al obtener las categorías: ui", error);
-            setCategories([]);
-        }
-    }
-
-    
-    // // Función para obtener marcas
-    // const getMarcas = async (tipoProducto) => {
-    //     try {
-    //         const response = await axios.get("/api/productos/getMarcaByTipo", {
-    //             params: { tipoProducto }
-    //         });
-    //         setMarcas(response.data.respuesta);
-    //     } catch (error) {
-    //         console.error("Error al obtener las marcas:", error);
-    //         setMarcas([]);
-    //     }
-    // }
-
-    useEffect(() => {
-        getCategories();
-    }, []);
-
-    // useEffect(() => {
-    //     if(categoriaSeleccionada) {
-    //         getMarcas(categoriaSeleccionada);
-    //     }
-    // }, [categoriaSeleccionada]);
-
-    return (
-        <Box sx={{
-            backgroundColor: '#fce3f2',
-            p: 2.5,
-            borderRadius: '20px',
-            boxShadow: '0px 3px 5px 0px rgba(0,0,0,0.30);',
-            height: '100%'
-        }}>
-            <Box sx={{
-                borderBottom: '1px solid #D4459F',
-                mb: 2,
-            }}>
-                <Typography variant="h5" sx={{ color: '#d35fa7', mb: 1 }}>
-                    Filtrar por:
-                </Typography>
-            </Box>
-            
-            <Box sx={{
-                width: "100%",
-            }}>
-                <ProductosAcordeon
-                    categorias={categories} 
-                    onSelectCategory={handleSelectCategory}
-                    selectedCategory={categoriaSeleccionada}
-                    marcas={marcas}
-                    descuentos={descuentos}
-                />
-            </Box>
-        </Box>
-    );
-};
-
-// Acordeon de ver todos los productos
-const ProductosAcordeon = ({ categorias, onSelectCategory, selectedCategory, marcas, descuentos }) => {
-    const [expanded, setExpanded] = React.useState(false);
-    
-    const handleChange = (panel) => (event, isExpanded) => {
-        setExpanded(isExpanded ? panel : false);
-    };
-
-    return (
-        <>
-            <Accordion 
-                expanded={expanded === 'panel1'} 
-                onChange={handleChange('panel1')}
-            >
-                <AccordionSummary>Descuentos</AccordionSummary>
-                <AccordionDetails>
-                    <Box sx={{ display: 'flex', flexDirection: 'column'}}>
-                        {descuentosOffline.length > 0 && (
-                            <>
-                                {descuentosOffline.map(descuento => (
-                                    <Box
-                                     key={descuento.id} 
-                                     sx={{
-                                            cursor: "pointer", 
-                                            display: 'flex', 
-                                            alignItems: 'center',
-                                            p: 1,
-                                            padding: "8px",
-                                            transition: "background-color 0.5s",
-                                            '&:hover': {
-                                                backgroundColor: "#efb3d7"
-                                            }  
-                                        }}>
-                                        <Typography variant="body2">{descuento.nombre}</Typography>
-                                    </Box>
-                                ))}
-                            </>
-                        )}
-                    </Box>
-                </AccordionDetails>
-            </Accordion>
-            <Accordion 
-                expanded={expanded === 'panel2'} 
-                onChange={handleChange('panel2')}
-            >
-                <AccordionSummary>Categorias</AccordionSummary>
-                <AccordionDetails >
-                    {categorias.map((category) => (
-                        <CategoryItem 
-                            key={category.idTipoProducto}
-                            name={category.nombreTipo}
-                            isSelected={selectedCategory === category.idTipoProducto}
-                            onClick={() => {
-                                onSelectCategory(category.idTipoProducto);
-                                setExpanded('panel2'); // Actualiza el estado aquí
-                            }}
-                        />
-                    ))}
-                </AccordionDetails>
-            </Accordion>
-            <Accordion 
-                expanded={expanded === 'panel3'} 
-                onChange={handleChange('panel3')}
-            >
-                <AccordionSummary>Marcas</AccordionSummary>
-                <AccordionDetails>
-                    <Box sx={{ display: 'flex', flexDirection: 'column'}}>
-                        {marcas.length > 0 && (
-                            <>
-                                {marcas.map(marca => (
-                                    <Box
-                                     key={marca.idMarca} 
-                                     sx={{
-                                            cursor: "pointer", 
-                                            display: 'flex', 
-                                            alignItems: 'center',
-                                            p: 1,
-                                            padding: "8px",
-                                            transition: "background-color 0.5s",
-                                            '&:hover': {
-                                                backgroundColor: "#efb3d7"
-                                            }  
-                                        }}>
-                                        <Typography variant="body2">{marca.nombreMarca}</Typography>
-                                    </Box>
-                                ))}
-                            </>
-                        )}
-                    </Box>
-                </AccordionDetails>
-            </Accordion>
-        </>
-    )
+function Seccion({ titulo, children }) {
+  return (
+    <section className="border-b border-ink-100 py-5 first:pt-0 last:border-0">
+      <h3 className="mb-3 text-sm font-bold tracking-wide text-ink-900 uppercase">{titulo}</h3>
+      {children}
+    </section>
+  );
 }
 
-// Componente CategoryItem corregido
-const CategoryItem = ({ name, isSelected, onClick }) => (
-    <Box
-        onClick={onClick} 
-        sx={{
-            cursor: "pointer",
-            padding: "8px",
-            transition: "background-color 0.5s",
-            '&:hover': {
-                backgroundColor: "#efb3d7"
-            }
-    }}>
-        <Typography 
-            component="span"
-            
-            sx={{
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                color: 'inherit',
-            }}>
-            {name}
-        </Typography>
-    </Box>
-);
+function Casilla({ checked, onChange, children, extra }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-3 rounded-lg py-1.5 text-sm text-ink-700 hover:text-ink-900">
+      <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
+      <span className={cn(
+        'grid h-5 w-5 shrink-0 place-items-center rounded-md border transition peer-focus-visible:ring-4 peer-focus-visible:ring-brand-100',
+        checked ? 'border-brand-500 bg-brand-500 text-white' : 'border-ink-300 bg-white'
+      )}>
+        {checked && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+      </span>
+      <span className="flex-1 truncate">{children}</span>
+      {extra !== undefined && <span className="text-xs text-ink-400 tabular-nums">{extra}</span>}
+    </label>
+  );
+}
 
+// Panel de filtros del catálogo (se usa en el sidebar y en el drawer mobile)
+export default function SideCategorias({ categorias, categoriaActiva, onCategoria, laboratorios, labsActivos, onToggleLab, precio, rangoPrecio, onPrecio, soloStock, onSoloStock }) {
+  const [verTodosLabs, setVerTodosLabs] = useState(false);
+  const labsVisibles = verTodosLabs ? laboratorios : laboratorios.slice(0, 8);
+  const [precioLocal, setPrecioLocal] = useState(precio);
+  const [precioPrevio, setPrecioPrevio] = useState(precio);
 
-export default SideCategorias;
+  // Sincronizar cuando cambia el filtro desde afuera (ej. "limpiar")
+  if (precio[0] !== precioPrevio[0] || precio[1] !== precioPrevio[1]) {
+    setPrecioPrevio(precio);
+    setPrecioLocal(precio);
+  }
+
+  return (
+    <div>
+      {categorias?.length > 0 && (
+        <Seccion titulo="Categoría">
+          <ul className="space-y-0.5">
+            {categorias.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => onCategoria(c.id === categoriaActiva ? null : c.id)}
+                  className={cn(
+                    'w-full cursor-pointer rounded-lg px-2.5 py-1.5 text-left text-sm transition',
+                    String(c.id) === String(categoriaActiva) ? 'bg-brand-50 font-semibold text-brand-700' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
+                  )}
+                >
+                  {c.nombre}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Seccion>
+      )}
+
+      <Seccion titulo="Disponibilidad">
+        <Casilla checked={soloStock} onChange={(e) => onSoloStock(e.target.checked)}>Sólo con stock</Casilla>
+      </Seccion>
+
+      {rangoPrecio[1] > rangoPrecio[0] && (
+        <Seccion titulo="Precio">
+          <Slider.Root
+            className="relative flex h-6 w-full touch-none items-center select-none"
+            min={rangoPrecio[0]}
+            max={rangoPrecio[1]}
+            step={1000}
+            value={precioLocal}
+            onValueChange={setPrecioLocal}
+            onValueCommit={onPrecio}
+            minStepsBetweenThumbs={1}
+          >
+            <Slider.Track className="relative h-1.5 grow rounded-full bg-ink-200">
+              <Slider.Range className="absolute h-full rounded-full bg-brand-500" />
+            </Slider.Track>
+            {[0, 1].map((i) => (
+              <Slider.Thumb
+                key={i}
+                aria-label={i === 0 ? 'Precio mínimo' : 'Precio máximo'}
+                className="block h-5 w-5 cursor-grab rounded-full border-2 border-brand-500 bg-white shadow transition hover:scale-110 focus:ring-4 focus:ring-brand-100 focus:outline-none"
+              />
+            ))}
+          </Slider.Root>
+          <div className="mt-3 flex justify-between text-xs font-medium text-ink-600 tabular-nums">
+            <span>{formatCurrency(precioLocal[0])}</span>
+            <span>{formatCurrency(precioLocal[1])}</span>
+          </div>
+        </Seccion>
+      )}
+
+      {laboratorios.length > 1 && (
+        <Seccion titulo="Laboratorio / Marca">
+          <div className="space-y-0.5">
+            {labsVisibles.map(({ nombre, cantidad }) => (
+              <Casilla key={nombre} checked={labsActivos.includes(nombre)} onChange={() => onToggleLab(nombre)} extra={cantidad}>
+                {capitalizar(nombre)}
+              </Casilla>
+            ))}
+          </div>
+          {laboratorios.length > 8 && (
+            <button type="button" onClick={() => setVerTodosLabs((v) => !v)} className="mt-2 cursor-pointer text-sm font-semibold text-brand-600 hover:underline">
+              {verTodosLabs ? 'Ver menos' : `Ver los ${laboratorios.length}`}
+            </button>
+          )}
+        </Seccion>
+      )}
+    </div>
+  );
+}
