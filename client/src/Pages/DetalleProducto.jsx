@@ -12,7 +12,7 @@ import Button, { buttonClasses } from '../ui/Button';
 import { Badge, EmptyState, QuantityStepper, Skeleton } from '../ui/misc';
 import { api } from '../lib/api';
 import { cn } from '../lib/cn';
-import { capitalizar, nombreProducto, whatsappUrl } from '../lib/texto';
+import { capitalizar, nombreProducto, porcentajeDescuento, whatsappUrl } from '../lib/texto';
 import { formatCurrency } from '../utils/formatCurrency';
 import { selectEsFavorito, toggleFavorito } from '../redux/favoritosSlice';
 import { setShowCart } from '../redux/cartSlice';
@@ -221,7 +221,17 @@ export default function DetalleProducto() {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <p className="font-display text-4xl font-extrabold text-ink-900">{formatCurrency(product.precio)}</p>
+            {porcentajeDescuento(product) > 0 ? (
+              <div>
+                <p className="flex items-center gap-2 text-sm text-ink-400">
+                  <span className="line-through">{formatCurrency(product.precioAnterior)}</span>
+                  <Badge tone="brand">-{porcentajeDescuento(product)}%</Badge>
+                </p>
+                <p className="font-display text-4xl font-extrabold text-brand-600">{formatCurrency(product.precio)}</p>
+              </div>
+            ) : (
+              <p className="font-display text-4xl font-extrabold text-ink-900">{formatCurrency(product.precio)}</p>
+            )}
             {sinStock ? (
               <Badge tone="danger">Sin stock</Badge>
             ) : stock <= 5 ? (

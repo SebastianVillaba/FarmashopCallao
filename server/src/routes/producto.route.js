@@ -9,6 +9,9 @@ router.get("/getProductos", productoController.getProducto);
 // Ruta para productos destacados de la home (con stock e imagen)
 router.get("/destacados", productoController.getDestacados);
 
+// Ruta para productos en oferta vigente (cabOferta/detOferta del ERP)
+router.get("/ofertas", productoController.getOfertas);
+
 // Ruta para conseguir el listado de tipo de productos
 router.get("/getCategorias", productoController.getCategorias);
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, MessageCircle, Search, ShoppingBag, Truck } from 'lucide-react';
+import { BadgePercent, ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, MessageCircle, Search, ShoppingBag, Truck } from 'lucide-react';
 import CartDrawer from '../Components/CartView';
 import Footer from '../Components/Footer';
 import FloatingBubble from '../Components/FloatingBubble';
@@ -61,6 +61,14 @@ function MenuCategorias({ departamentos }) {
   return (
     <nav className="relative hidden border-t border-ink-100 lg:block" onMouseLeave={cerrar}>
       <ul className="container-page scrollbar-none flex h-12 items-center justify-between gap-0.5 overflow-x-auto">
+        <li onMouseEnter={cerrar}>
+          <Link
+            to="/ofertas"
+            className="flex h-9 items-center gap-1.5 rounded-full bg-brand-500 px-3 text-[13px] font-semibold whitespace-nowrap text-white transition hover:bg-brand-600 xl:text-sm"
+          >
+            <BadgePercent className="h-4 w-4" /> Ofertas
+          </Link>
+        </li>
         {departamentos.map((d) => (
           <li key={d.slug} onMouseEnter={() => abrir(d.slug)}>
             <Link
@@ -118,6 +126,16 @@ function MenuMobile({ open, onOpenChange, departamentos }) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange} side="left" title="Categorías" className="max-w-sm">
       <ul className="p-3">
+        <li>
+          <button
+            type="button"
+            onClick={() => ir('/ofertas')}
+            className="mb-1 flex w-full cursor-pointer items-center gap-3 rounded-2xl bg-brand-50 p-2.5 text-left font-semibold text-brand-700"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand-500 text-white"><BadgePercent className="h-5 w-5" /></span>
+            Ofertas
+          </button>
+        </li>
         {departamentos.map((d) => (
           <li key={d.slug}>
             <button

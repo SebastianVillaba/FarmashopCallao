@@ -144,7 +144,14 @@ export default function SearchBox({ className, autoFocus, onNavigate }) {
                         <span className="line-clamp-1 text-sm font-medium text-ink-800">{nombreProducto(p.nombreMercaderia)}</span>
                         <span className="text-xs text-ink-400">{p.nombreLab}</span>
                       </span>
-                      <span className="text-sm font-bold text-ink-900">{formatCurrency(p.precio)}</span>
+                      <span className="text-right">
+                        {p.precioAnterior > p.precio && (
+                          <span className="block text-[11px] text-ink-400 line-through">{formatCurrency(p.precioAnterior)}</span>
+                        )}
+                        <span className={cn('text-sm font-bold', p.precioAnterior > p.precio ? 'text-brand-600' : 'text-ink-900')}>
+                          {formatCurrency(p.precio)}
+                        </span>
+                      </span>
                     </button>
                   </li>
                 ))}

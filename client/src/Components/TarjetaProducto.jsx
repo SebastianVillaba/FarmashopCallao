@@ -4,7 +4,7 @@ import { Heart, Plus } from 'lucide-react';
 import ProductImage from './ProductImage';
 import { Skeleton } from '../ui/misc';
 import { cn } from '../lib/cn';
-import { nombreProducto, capitalizar } from '../lib/texto';
+import { nombreProducto, capitalizar, porcentajeDescuento } from '../lib/texto';
 import { formatCurrency } from '../utils/formatCurrency';
 import { selectEsFavorito, toggleFavorito } from '../redux/favoritosSlice';
 import useAgregarAlCarrito from '../hooks/useCarrito';
@@ -17,6 +17,7 @@ export default function TarjetaProducto({ producto, className }) {
   const esFavorito = useSelector(selectEsFavorito(producto.idProducto));
   const sinStock = producto.stockTotal !== undefined && producto.stockTotal <= 0;
   const nombre = nombreProducto(producto.nombreMercaderia);
+  const descuento = porcentajeDescuento(producto);
 
   return (
     <article className={cn(
@@ -45,10 +46,17 @@ export default function TarjetaProducto({ producto, className }) {
         <Heart className="h-4.5 w-4.5" fill={esFavorito ? 'currentColor' : 'none'} />
       </button>
 
-      {sinStock && (
-        <span className="absolute top-3 left-3 rounded-full bg-ink-900/80 px-2.5 py-1 text-[11px] font-semibold text-white">
-          Sin stock
-        </span>
+      {(sinStock || descuento > 0) && (
+        <div className="pointer-events-none absolute top-3 left-3 flex flex-col items-start gap-1.5">
+          {descuento > 0 && (
+            <span className="rounded-full bg-brand-500 px-2.5 py-1 text-xs font-extrabold text-white shadow-sm shadow-brand-500/30">
+              -{descuento}%
+            </span>
+          )}
+          {sinStock && (
+            <span className="rounded-full bg-ink-900/80 px-2.5 py-1 text-[11px] font-semibold text-white">Sin stock</span>
+          )}
+        </div>
       )}
 
       <div className="flex flex-1 flex-col gap-1 border-t border-ink-100 p-4">
@@ -65,7 +73,14 @@ export default function TarjetaProducto({ producto, className }) {
         </Link>
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-3">
-          <p className="font-display text-base font-extrabold text-ink-900 sm:text-lg">{formatCurrency(producto.precio)}</p>
+          <div className="min-w-0">
+            {descuento > 0 && (
+              <p className="text-xs text-ink-400 line-through">{formatCurrency(producto.precioAnterior)}</p>
+            )}
+            <p className={cn('font-display text-base font-extrabold sm:text-lg', descuento > 0 ? 'text-brand-600' : 'text-ink-900')}>
+              {formatCurrency(producto.precio)}
+            </p>
+          </div>
           <button
             type="button"
             disabled={sinStock}

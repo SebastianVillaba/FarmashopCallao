@@ -3,6 +3,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import HomeImageSlider from '../Components/HomeImageSlider';
 import ComprarCategoria from '../Components/ComprarCategoria';
 import ProductosDestacados from '../Components/ProductosDestacados';
+import ProductosOferta from '../Components/ProductosOferta';
 import Beneficios from '../Components/Beneficios';
 import { WhatsAppLogo } from '../Components/FloatingBubble';
 import { buttonClasses } from '../ui/Button';
@@ -71,12 +72,14 @@ export default function HomePage() {
     <>
       <title>Farmashop Paraguay · Tu farmacia online</title>
       <div className="container-page space-y-14 pt-6 sm:space-y-20 sm:pt-8">
+        {/* Primero lo que más incentiva la compra: ofertas y destacados */}
         <div className="space-y-6">
           <HomeImageSlider />
-          <Beneficios />
+          <ProductosOferta />
         </div>
-        <ComprarCategoria />
         <ProductosDestacados />
+        <ComprarCategoria />
+        <Beneficios />
         <div className="grid gap-5 md:grid-cols-2">
           <PromoDermo />
           <PromoBebes />

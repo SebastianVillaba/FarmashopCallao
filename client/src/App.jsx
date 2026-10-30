@@ -13,6 +13,7 @@ const PedidoPage = lazy(() => import('./Pages/PedidoPage'))
 const SucursalesPage = lazy(() => import('./Pages/SucursalesPage'))
 const LegalPage = lazy(() => import('./Pages/LegalPage'))
 const FavoritosPage = lazy(() => import('./Pages/FavoritosPage'))
+const OfertasPage = lazy(() => import('./Pages/OfertasPage'))
 
 const Cargando = () => (
   <div className="flex min-h-[60vh] items-center justify-center">
@@ -32,6 +33,7 @@ function App() {
           <Route path='/home' element={<HomePage />} />
           {/* RUTAS DE PRODUCTOS */}
           <Route path='/catalogo' element={<CatalogoPage />} />
+          <Route path='/ofertas' element={<OfertasPage />} />
           <Route path='/detalle/:id/:slug?' element={<DetalleProducto />} />
           <Route path='/favoritos' element={<FavoritosPage />} />
           <Route path='/cart' element={<CartPage />} />

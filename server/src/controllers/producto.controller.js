@@ -1,5 +1,6 @@
 import { executeRequest } from "../utils/dbHandler.js";
 import { getImagenes, tieneImagen } from "../utils/imageIndex.js";
+import { asegurarOfertas, getIdsEnOferta, getPrecioAnterior } from "../utils/ofertas.js";
 import sql from 'mssql';
 
 // Función para crear slug (sin acentos para URLs limpias)
@@ -31,7 +32,8 @@ const mapProducto = (fila) => {
             producto.codigo || "0000" // Valor por defecto
         ),
         imagenes,
-        imagen: imagenes[0] || null
+        imagen: imagenes[0] || null,
+        precioAnterior: getPrecioAnterior(producto.idProducto, producto.precio)
     };
 };
 
@@ -110,16 +112,69 @@ const getDestacados = async (req, res) => {
             const conImagen = result.recordset.filter(p => tieneImagen(p.codigo));
             cacheDestacados = {
                 fecha: Date.now(),
-                data: (conImagen.length ? conImagen : result.recordset).map(mapProducto)
+                data: conImagen.length ? conImagen : result.recordset
             };
         }
 
+        // Las ofertas tienen su propia sección en la home, no se repiten acá
+        await asegurarOfertas();
+        const enOferta = new Set(getIdsEnOferta());
+        const candidatos = cacheDestacados.data.filter(p => !enOferta.has(p.idProducto));
+
         res.status(200).json({
             mensaje: "Consulta exitosa",
-            respuesta: mezclar(cacheDestacados.data).slice(0, limit)
+            respuesta: mezclar(candidatos).slice(0, limit).map(mapProducto)
         });
     } catch (err) {
         errorInterno(res, "getDestacados", err);
+    }
+};
+
+// Productos con oferta vigente en el ERP y con stock, de mayor a menor descuento
+const getOfertas = async (req, res) => {
+    try {
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 24, 1), 100);
+
+        await asegurarOfertas();
+        if (!getIdsEnOferta().length) {
+            return res.status(200).json({ mensaje: "Consulta exitosa", respuesta: [] });
+        }
+
+        const result = await executeRequest({
+            query: `SELECT
+                        p.idProducto,
+                        p.nombreProducto AS nombreMercaderia,
+                        p.codigo,
+                        lb.nombre AS nombreLab,
+                        p.precio,
+                        SUM(s.cantidad) AS stockTotal
+                    FROM stock s
+                    INNER JOIN producto p ON s.idProducto = p.idProducto
+                    INNER JOIN v_laboratorio lb ON p.idLaboratorio = lb.idLaboratorio
+                    WHERE p.precio > 0
+                      AND p.idProducto IN (
+                          SELECT d.idProducto
+                          FROM detOferta d
+                          INNER JOIN cabOferta o ON o.idOferta = d.idOferta
+                          WHERE o.activo = 1 AND GETDATE() BETWEEN o.desde AND o.hasta AND d.fraccion = 0
+                      )
+                    GROUP BY p.idProducto, p.nombreProducto, p.codigo, lb.nombre, p.precio
+                    HAVING SUM(s.cantidad) > 0`,
+            isStoredProcedure: false
+        });
+
+        const descuento = (p) => 1 - p.precio / p.precioAnterior;
+        const productos = result.recordset
+            .map(mapProducto)
+            .filter(p => p.precioAnterior)
+            .sort((a, b) => (Boolean(b.imagen) - Boolean(a.imagen)) || (descuento(b) - descuento(a)));
+
+        res.status(200).json({
+            mensaje: "Consulta exitosa",
+            respuesta: productos.slice(0, limit)
+        });
+    } catch (err) {
+        errorInterno(res, "getOfertas", err);
     }
 };
 
@@ -291,6 +346,7 @@ const getMarcaByTipo = async (req, res) => {
 export default {
     getProducto,
     getDestacados,
+    getOfertas,
     getCategorias,
     getMarcaByTipo,
     getProductoById,

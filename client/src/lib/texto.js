@@ -17,3 +17,7 @@ export const nombreProducto = (texto = '') =>
 
 export const whatsappUrl = (telefono, mensaje = '') =>
   `https://wa.me/${String(telefono).replace(/[^\d]/g, '')}?text=${encodeURIComponent(mensaje)}`;
+
+// % de descuento de un producto en oferta (precioAnterior viene del server sólo si hay oferta vigente)
+export const porcentajeDescuento = (p) =>
+  p?.precioAnterior > p?.precio ? Math.round((1 - p.precio / p.precioAnterior) * 100) : 0;

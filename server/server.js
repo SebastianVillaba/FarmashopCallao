@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import productoRoute from './src/routes/producto.route.js'
 import pedidoRoute from './src/routes/pedido.route.js'
 import { iniciarIndiceImagenes, IMAGES_DIR, IMAGES_URL } from './src/utils/imageIndex.js';
+import { iniciarOfertas } from './src/utils/ofertas.js';
 
 dotenv.config();
 const app = express();
@@ -42,7 +43,7 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciamos el servidor
-iniciarIndiceImagenes().then(() => {
+Promise.all([iniciarIndiceImagenes(), iniciarOfertas()]).then(() => {
     app.listen(PORT, ()=> {
         // Mostrar el mensaje en consola
         console.log(`Servidor corriendo en http://localhost:${PORT}`)
