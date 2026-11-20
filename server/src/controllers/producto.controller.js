@@ -1,6 +1,7 @@
 import { executeRequest } from "../utils/dbHandler.js";
 import { getImagenes, tieneImagen } from "../utils/imageIndex.js";
-import { asegurarOfertas, getIdsEnOferta, getPrecioAnterior } from "../utils/ofertas.js";
+import { asegurarOfertas, getIdsEnOferta } from "../utils/ofertas.js";
+import { asegurarWebProductos, esVisible, getIdsDestacados, getWebProducto, precioWeb } from "../utils/webProductos.js";
 import sql from 'mssql';
 
 // Función para crear slug (sin acentos para URLs limpias)
@@ -21,10 +22,11 @@ const limpiar = (fila) => Object.fromEntries(
     Object.entries(fila).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
 );
 
-// Agrega slug e imágenes a cada producto
+// Agrega slug, imágenes y el precio web (precio Farmashop / recomendado / oferta del ERP)
 const mapProducto = (fila) => {
     const producto = limpiar(fila);
     const imagenes = getImagenes(producto.codigo);
+    const { precio, precioAnterior, esPrecioFarmashop } = precioWeb(producto.idProducto, producto.precio);
     return {
         ...producto,
         slug: generarSlug(
@@ -33,8 +35,44 @@ const mapProducto = (fila) => {
         ),
         imagenes,
         imagen: imagenes[0] || null,
-        precioAnterior: getPrecioAnterior(producto.idProducto, producto.precio)
+        precio,
+        precioAnterior,
+        precioFarmashop: esPrecioFarmashop
     };
+};
+
+// Quita los productos ocultos desde el panel y mapea el resto
+const mapLista = (filas) => filas.filter(f => esVisible(f.idProducto)).map(mapProducto);
+
+// Asegura que los cachés de ofertas y datos web estén cargados antes de responder
+export const cargarCaches = async (req, res, next) => {
+    await Promise.all([asegurarOfertas(), asegurarWebProductos()]);
+    next();
+};
+
+// Productos por id (favoritos de la cuenta). Respeta el orden recibido y omite los ocultos.
+// LEFT JOIN: un favorito sin filas de stock se muestra igual, como "Sin stock".
+export const productosPorIds = async (ids) => {
+    if (!ids.length) return [];
+    await Promise.all([asegurarOfertas(), asegurarWebProductos()]);
+    const inputs = ids.map((id, i) => ({ name: `id${i}`, type: sql.Int, value: id }));
+    const result = await executeRequest({
+        query: `SELECT
+                    p.idProducto,
+                    p.nombreProducto AS nombreMercaderia,
+                    ISNULL(SUM(s.cantidad), 0) AS stockTotal,
+                    p.codigo,
+                    lb.nombre AS nombreLab,
+                    p.precio
+                FROM producto p
+                LEFT JOIN stock s ON s.idProducto = p.idProducto
+                LEFT JOIN v_laboratorio lb ON lb.idLaboratorio = p.idLaboratorio
+                WHERE p.idProducto IN (${inputs.map(i => '@' + i.name).join(', ')})
+                GROUP BY p.idProducto, p.nombreProducto, p.codigo, lb.nombre, p.precio`,
+        inputs
+    });
+    const porId = new Map(mapLista(result.recordset).map(p => [p.idProducto, p]));
+    return ids.map(id => porId.get(id)).filter(Boolean);
 };
 
 const errorInterno = (res, nombre, err) => {
@@ -65,7 +103,7 @@ const getProducto = async (req, res) => {
 
         res.status(200).json({
             mensaje: "Consulta exitosa",
-            respuesta: result.recordset.map(mapProducto)
+            respuesta: mapLista(result.recordset)
         });
     } catch (err) {
         errorInterno(res, "getProducto", err);
@@ -76,7 +114,7 @@ const getProducto = async (req, res) => {
 // Se consultan todos los productos con stock (consulta liviana), se filtran los que
 // tienen imagen y se cachea el resultado unos minutos.
 const DESTACADOS_TTL_MS = 10 * 60 * 1000;
-let cacheDestacados = { fecha: 0, data: [] };
+let cacheDestacados = { fecha: 0, todos: [], conImagen: new Set() };
 
 const mezclar = (lista) => {
     const copia = [...lista];
@@ -109,21 +147,26 @@ const getDestacados = async (req, res) => {
                 isStoredProcedure: false
             });
             // Priorizar productos con foto; si la carpeta de imágenes no está disponible, mostrar igual con stock
-            const conImagen = result.recordset.filter(p => tieneImagen(p.codigo));
             cacheDestacados = {
                 fecha: Date.now(),
-                data: conImagen.length ? conImagen : result.recordset
+                todos: result.recordset,
+                conImagen: new Set(result.recordset.filter(p => tieneImagen(p.codigo)).map(p => p.idProducto))
             };
         }
 
         // Las ofertas tienen su propia sección en la home, no se repiten acá
-        await asegurarOfertas();
         const enOferta = new Set(getIdsEnOferta());
-        const candidatos = cacheDestacados.data.filter(p => !enOferta.has(p.idProducto));
+        const candidatos = cacheDestacados.todos.filter(p => !enOferta.has(p.idProducto) && esVisible(p.idProducto));
+
+        // Primero los marcados como destacados en el panel (con stock), después al azar
+        const marcados = new Set(getIdsDestacados());
+        const elegidos = candidatos.filter(p => marcados.has(p.idProducto));
+        const resto = candidatos.filter(p => !marcados.has(p.idProducto) && cacheDestacados.conImagen.has(p.idProducto));
+        const relleno = resto.length ? resto : candidatos.filter(p => !marcados.has(p.idProducto));
 
         res.status(200).json({
             mensaje: "Consulta exitosa",
-            respuesta: mezclar(candidatos).slice(0, limit).map(mapProducto)
+            respuesta: [...mezclar(elegidos), ...mezclar(relleno)].slice(0, limit).map(mapProducto)
         });
     } catch (err) {
         errorInterno(res, "getDestacados", err);
@@ -135,7 +178,6 @@ const getOfertas = async (req, res) => {
     try {
         const limit = Math.min(Math.max(parseInt(req.query.limit) || 24, 1), 100);
 
-        await asegurarOfertas();
         if (!getIdsEnOferta().length) {
             return res.status(200).json({ mensaje: "Consulta exitosa", respuesta: [] });
         }
@@ -164,8 +206,7 @@ const getOfertas = async (req, res) => {
         });
 
         const descuento = (p) => 1 - p.precio / p.precioAnterior;
-        const productos = result.recordset
-            .map(mapProducto)
+        const productos = mapLista(result.recordset)
             .filter(p => p.precioAnterior)
             .sort((a, b) => (Boolean(b.imagen) - Boolean(a.imagen)) || (descuento(b) - descuento(a)));
 
@@ -200,7 +241,7 @@ const getProductoByNombre = async (req, res) => {
 
         res.status(200).json({
             mensaje: "Consulta exitosa",
-            respuesta: result.recordset.map(mapProducto)
+            respuesta: mapLista(result.recordset)
         });
     } catch (err) {
         errorInterno(res, "getProductoByNombre", err);
@@ -237,13 +278,13 @@ export const getProductoById = async (req, res) => {
         });
 
         const producto = result.recordset[0];
-        if (!producto) {
+        if (!producto || !esVisible(producto.idProducto)) {
             return res.status(404).json({ error: "Producto no encontrado" });
         }
 
         res.status(200).json({
             mensaje: 'Consulta exitosa',
-            respuesta: mapProducto(producto)
+            respuesta: { ...mapProducto(producto), descripcionWeb: getWebProducto(producto.idProducto)?.descripcionWeb || null }
         });
     } catch (err) {
         errorInterno(res, "getProductoById", err);
@@ -307,7 +348,7 @@ const getProductoByCategoria = async (req, res) => {
     const productos = new Map();
     resultados.forEach((result, i) => {
       for (const fila of result.recordset || []) {
-        if (!productos.has(fila.idProducto)) {
+        if (!productos.has(fila.idProducto) && esVisible(fila.idProducto)) {
           productos.set(fila.idProducto, { ...mapProducto(fila), idTipoProducto: ids[i] });
         }
       }

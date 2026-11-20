@@ -1,7 +1,10 @@
 import express from 'express';
-import productoController from '../controllers/producto.controller.js';
+import productoController, { cargarCaches } from '../controllers/producto.controller.js';
 
 const router = express.Router();
+
+// Precios web y ofertas actualizados antes de cada consulta
+router.use(cargarCaches);
 
 // Ruta para conseguir los productos
 router.get("/getProductos", productoController.getProducto);

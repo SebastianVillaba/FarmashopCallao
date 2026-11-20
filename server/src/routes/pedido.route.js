@@ -1,6 +1,7 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import pedidoController from '../controllers/pedido.controller.js';
+import { clienteOpcional } from '../middleware/authCliente.js';
 
 const router = express.Router();
 
@@ -14,7 +15,8 @@ const limitePedidos = rateLimit({
 });
 
 // Ruta para registrar un pedido nuevo
-router.post("/", limitePedidos, pedidoController.crearPedido);
+// Con sesión de cliente el pedido queda en "Mis pedidos"
+router.post("/", limitePedidos, clienteOpcional, pedidoController.crearPedido);
 
 // Ruta para consultar un pedido (requiere el email con el que se hizo)
 router.get("/:nro", pedidoController.getPedido);

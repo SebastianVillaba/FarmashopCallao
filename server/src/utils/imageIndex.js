@@ -60,9 +60,27 @@ export const iniciarIndiceImagenes = async () => {
   setInterval(construirIndice, REFRESCO_MS).unref();
 };
 
-export const getImagenes = (codigo) => {
+// Versión de las imágenes modificadas desde el panel: evita que el navegador muestre la foto vieja
+// (las imágenes se cachean 7 días y al reordenar se reutilizan los mismos nombres de archivo)
+const versiones = new Map();
+export const marcarVersionImagenes = (codigo) => versiones.set(String(codigo).trim().toLowerCase(), Date.now());
+
+const urlsSinVersion = (codigo) => {
   if (codigo === null || codigo === undefined) return [];
   return indice.get(String(codigo).trim().toLowerCase()) || [];
 };
+
+export const getImagenes = (codigo) => {
+  const urls = urlsSinVersion(codigo);
+  const version = urls.length ? versiones.get(String(codigo).trim().toLowerCase()) : null;
+  return version ? urls.map(u => `${u}?v=${version}`) : urls;
+};
+
+// Reconstruye el índice al instante (después de subir o borrar fotos desde el panel)
+export const refrescarIndiceImagenes = construirIndice;
+
+// Nombres de archivo (no URLs) de las imágenes de un producto, en orden
+export const getArchivosImagen = (codigo) =>
+    urlsSinVersion(codigo).map(url => decodeURIComponent(url.slice(IMAGES_URL.length + 1)));
 
 export const tieneImagen = (codigo) => getImagenes(codigo).length > 0;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Copy, PackageSearch, Store, Truck } from 'lucide-react';
+import { CheckCircle2, Copy, PackageSearch, Store, Truck, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import CustomBreadcrumbs from '../Components/CustomBreadCrumb';
 import ProductImage from '../Components/ProductImage';
@@ -8,19 +8,15 @@ import { WhatsAppLogo } from '../Components/FloatingBubble';
 import Button, { buttonClasses } from '../ui/Button';
 import { Input } from '../ui/Field';
 import { Badge, Card, EmptyState, Skeleton } from '../ui/misc';
+import { trackCompra } from '../lib/analytics';
 import { api, mensajeError } from '../lib/api';
+import { ESTADOS_PEDIDO } from '../lib/pedidos';
+import { useCuenta } from '../context/CuentaContext';
 import { nombreProducto, whatsappUrl } from '../lib/texto';
 import { formatCurrency } from '../utils/formatCurrency';
 import { DATOS_BANCARIOS, METODOS_PAGO, QR_PAGO, SUCURSALES, TIENDA } from '../config/tienda';
 
-const ESTADOS = {
-  pendiente: { label: 'Pendiente de pago', tone: 'brand' },
-  confirmado: { label: 'Confirmado', tone: 'sky' },
-  preparando: { label: 'En preparación', tone: 'sky' },
-  enviado: { label: 'En camino', tone: 'leaf' },
-  entregado: { label: 'Entregado', tone: 'leaf' },
-  cancelado: { label: 'Cancelado', tone: 'danger' },
-};
+const ESTADOS = ESTADOS_PEDIDO;
 
 const copiar = (texto) => navigator.clipboard?.writeText(texto).then(() => toast.success('Copiado'));
 
@@ -33,6 +29,21 @@ function Dato({ label, valor }) {
         {valor} <Copy className="h-3.5 w-3.5" />
       </button>
     </div>
+  );
+}
+
+// Después de comprar como invitado: crear la cuenta con los datos ya cargados
+function InvitacionCuenta({ pedido }) {
+  const datos = new URLSearchParams({ nombre: pedido.nombre, apellido: pedido.apellido, email: pedido.email, telefono: pedido.telefono });
+  return (
+    <Card className="mt-4 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center">
+      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-500"><UserPlus className="h-6 w-6" /></span>
+      <div className="flex-1">
+        <p className="font-bold">¿La próxima vez, más rápido?</p>
+        <p className="text-sm text-ink-500">Creá tu cuenta y tus datos se completan solos en tu próxima compra.</p>
+      </div>
+      <Link to={`/cuenta/registro?${datos}`} className={buttonClasses({ variant: 'soft' })}>Crear mi cuenta</Link>
+    </Card>
   );
 }
 
@@ -113,6 +124,7 @@ export default function PedidoPage() {
   const [params] = useSearchParams();
   const email = params.get('email') || '';
   const esNuevo = params.get('nuevo') === '1';
+  const { cliente, cargando: cargandoCuenta } = useCuenta();
   const [pedido, setPedido] = useState(null);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(!!nro);
@@ -121,10 +133,22 @@ export default function PedidoPage() {
     if (!nro) return;
     setCargando(true);
     api.get(`/pedidos/${encodeURIComponent(nro)}`, { params: { email } })
-      .then(({ data }) => setPedido(data.respuesta))
+      .then(({ data }) => {
+        setPedido(data.respuesta);
+        // Compra para GA4, una sola vez por pedido (aunque se recargue la página)
+        const clave = `fs_compra_${data.respuesta.nroPedido}`;
+        try {
+          if (esNuevo && !sessionStorage.getItem(clave)) {
+            sessionStorage.setItem(clave, '1');
+            trackCompra(data.respuesta.nroPedido, data.respuesta.total, data.respuesta.items);
+          }
+        } catch {
+          // sin storage
+        }
+      })
       .catch((err) => setError(err))
       .finally(() => setCargando(false));
-  }, [nro, email]);
+  }, [nro, email, esNuevo]);
 
   if (!nro) return <div className="container-page pt-6"><title>Seguí tu pedido · Farmashop</title><BuscarPedido /></div>;
 
@@ -160,6 +184,8 @@ export default function PedidoPage() {
           <p className="mt-2 max-w-md text-white/90">Recibimos tu pedido. Te vamos a contactar por WhatsApp al {pedido.telefono} para coordinar.</p>
         </div>
       )}
+
+      {esNuevo && !cargandoCuenta && !cliente && <InvitacionCuenta pedido={pedido} />}
 
       <div className="mt-6 grid items-start gap-6 md:grid-cols-[1fr_340px]">
         <Card className="p-6">

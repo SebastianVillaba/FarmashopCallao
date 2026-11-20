@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "crear-usuario": "node scripts/crearUsuarioWeb.js"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -15,13 +16,18 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-rate-limit": "^8.7.1",
     "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
     "mssql": "^11.0.1",
+    "multer": "^2.5.0",
     "nodemon": "^3.1.10",
+    "sharp": "^0.35.5",
     "zod": "^4.6.7"
   }
 }

@@ -98,3 +98,77 @@
     display: none;
   }
 }
+
+/* =========================================================
+   Temáticas estacionales (globales, definidas desde el panel)
+   Re-mapean los tokens de marca: toda la web cambia sin tocar componentes.
+   ========================================================= */
+:root[data-tema="navidad"] {
+  --color-brand-50: #fef2f2;
+  --color-brand-100: #fee2e2;
+  --color-brand-200: #fecaca;
+  --color-brand-300: #fca5a5;
+  --color-brand-400: #ef4444;
+  --color-brand-500: #c8102e;
+  --color-brand-600: #a50d26;
+  --color-brand-700: #870b20;
+  --color-brand-800: #6e0c1c;
+  --color-brand-900: #5a0b18;
+  --color-leaf-50: #ecf8f0;
+  --color-leaf-100: #d2efdc;
+  --color-leaf-500: #1f8a4c;
+  --color-leaf-600: #18723e;
+  --color-leaf-700: #135a31;
+}
+
+:root[data-tema="halloween"] {
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #ea580c;
+  --color-brand-600: #c2410c;
+  --color-brand-700: #9a3412;
+  --color-brand-800: #7c2d12;
+  --color-brand-900: #431407;
+  --color-ink-900: #1c1129;
+  --color-sky-500: #7c3aed;
+  --color-sky-600: #6d28d9;
+  --color-sky-700: #5b21b6;
+}
+
+:root[data-tema="cyberday"] {
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #7c3aed;
+  --color-brand-600: #6d28d9;
+  --color-brand-700: #5b21b6;
+  --color-brand-800: #4c1d95;
+  --color-brand-900: #2e1065;
+  --color-sky-500: #06b6d4;
+  --color-sky-600: #0891b2;
+  --color-sky-700: #0e7490;
+  --color-ink-900: #0b0a1a;
+}
+
+/* Copos de nieve / partículas de la decoración temática */
+@keyframes caer {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); }
+  100% { transform: translate3d(var(--deriva, 20px), 110vh, 0) rotate(360deg); }
+}
+@keyframes flotar-tema {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-14px) rotate(6deg); }
+}
+@keyframes brillo-cyber {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .decoracion-animada { display: none; }
+}

@@ -9,6 +9,7 @@ import { WhatsAppLogo } from '../Components/FloatingBubble';
 import { buttonClasses } from '../ui/Button';
 import { whatsappUrl } from '../lib/texto';
 import { TIENDA } from '../config/tienda';
+import { useConfig } from '../context/ConfigContext';
 
 function PromoDermo() {
   return (
@@ -42,6 +43,20 @@ function PromoBebes() {
   );
 }
 
+// Banner promocional cargado desde el panel (reemplaza a la tarjeta por defecto)
+function BannerPromo({ banner }) {
+  const imagen = (
+    <picture>
+      {banner.srcMovil && <source media="(max-width: 639px)" srcSet={banner.srcMovil} />}
+      <img src={banner.src} alt={banner.alt} loading="lazy" className="h-full min-h-56 w-full object-cover transition duration-500 group-hover:scale-[1.02]" />
+    </picture>
+  );
+  const clases = 'group block overflow-hidden rounded-3xl bg-ink-100 shadow-card';
+  if (!banner.link) return <div className={clases}>{imagen}</div>;
+  if (banner.link.startsWith('/')) return <Link to={banner.link} className={clases}>{imagen}</Link>;
+  return <a href={banner.link} target="_blank" rel="noreferrer" className={clases}>{imagen}</a>;
+}
+
 function AyudaWhatsapp() {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 px-6 py-10 text-white sm:px-12 sm:py-14">
@@ -68,6 +83,9 @@ function AyudaWhatsapp() {
 }
 
 export default function HomePage() {
+  const { banners } = useConfig();
+  const promo1 = banners?.promo_1?.[0];
+  const promo2 = banners?.promo_2?.[0];
   return (
     <>
       <title>Farmashop Paraguay · Tu farmacia online</title>
@@ -81,8 +99,8 @@ export default function HomePage() {
         <ComprarCategoria />
         <Beneficios />
         <div className="grid gap-5 md:grid-cols-2">
-          <PromoDermo />
-          <PromoBebes />
+          {promo1 ? <BannerPromo banner={promo1} /> : <PromoDermo />}
+          {promo2 ? <BannerPromo banner={promo2} /> : <PromoBebes />}
         </div>
         <AyudaWhatsapp />
       </div>

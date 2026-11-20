@@ -1,20 +1,18 @@
 import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
 import { Heart, Plus } from 'lucide-react';
 import ProductImage from './ProductImage';
 import { Skeleton } from '../ui/misc';
 import { cn } from '../lib/cn';
 import { nombreProducto, capitalizar, porcentajeDescuento } from '../lib/texto';
 import { formatCurrency } from '../utils/formatCurrency';
-import { selectEsFavorito, toggleFavorito } from '../redux/favoritosSlice';
+import useFavorito from '../hooks/useFavorito';
 import useAgregarAlCarrito from '../hooks/useCarrito';
 
 export const urlProducto = (p) => `/detalle/${p.idProducto}/${p.slug}`;
 
 export default function TarjetaProducto({ producto, className }) {
-  const dispatch = useDispatch();
   const agregar = useAgregarAlCarrito();
-  const esFavorito = useSelector(selectEsFavorito(producto.idProducto));
+  const { esFavorito, alternar } = useFavorito(producto);
   const sinStock = producto.stockTotal !== undefined && producto.stockTotal <= 0;
   const nombre = nombreProducto(producto.nombreMercaderia);
   const descuento = porcentajeDescuento(producto);
@@ -35,7 +33,7 @@ export default function TarjetaProducto({ producto, className }) {
 
       <button
         type="button"
-        onClick={() => dispatch(toggleFavorito(producto))}
+        onClick={alternar}
         aria-label={esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         aria-pressed={esFavorito}
         className={cn(
@@ -74,8 +72,16 @@ export default function TarjetaProducto({ producto, className }) {
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-3">
           <div className="min-w-0">
+            {producto.precioFarmashop && (
+              <p className="mb-0.5 inline-block rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white uppercase">
+                Precio Farmashop
+              </p>
+            )}
             {descuento > 0 && (
-              <p className="text-xs text-ink-400 line-through">{formatCurrency(producto.precioAnterior)}</p>
+              <p className="text-xs text-ink-400">
+                {producto.precioFarmashop && <span className="mr-1">Sugerido</span>}
+                <span className="line-through">{formatCurrency(producto.precioAnterior)}</span>
+              </p>
             )}
             <p className={cn('font-display text-base font-extrabold sm:text-lg', descuento > 0 ? 'text-brand-600' : 'text-ink-900')}>
               {formatCurrency(producto.precio)}

@@ -2,6 +2,10 @@ import sql from 'mssql';
 import { z } from 'zod';
 import { executeRequest, withTransaction } from "../utils/dbHandler.js";
 import { getImagenes } from "../utils/imageIndex.js";
+import { asegurarOfertas } from "../utils/ofertas.js";
+import { asegurarWebProductos, esVisible, precioWeb } from "../utils/webProductos.js";
+import { vincularPedido } from "./tracking.controller.js";
+import { guardarPerfil } from "./cuenta.controller.js";
 
 const COSTO_DELIVERY = parseInt(process.env.DELIVERY_COSTO) || 0;
 const MAX_ITEMS = 50;
@@ -36,14 +40,19 @@ const pedidoSchema = z.object({
         }),
     ]),
     metodoPago: z.enum(["transferencia", "qr", "contra_entrega"]),
+    idSesion: z.string().uuid().optional(),
+    // Sólo con sesión de cliente: actualiza el perfil con los datos de este pedido
+    guardarEnCuenta: z.boolean().optional(),
     items: z.array(z.object({
         idProducto: z.coerce.number().int().positive(),
         cantidad: z.coerce.number().int().min(1).max(99),
     })).min(1).max(MAX_ITEMS),
 });
 
-// Consulta precio y stock reales; nunca se usa el precio que manda el navegador
+// Consulta precio y stock reales; nunca se usa el precio que manda el navegador.
+// El precio cobrado es el precio web (precio Farmashop si se cargó en el panel).
 const consultarProductos = async (ids) => {
+    await Promise.all([asegurarOfertas(), asegurarWebProductos()]);
     const inputs = ids.map((id, i) => ({ name: `id${i}`, type: sql.Int, value: id }));
     const result = await executeRequest({
         query: `SELECT
@@ -58,7 +67,9 @@ const consultarProductos = async (ids) => {
                 GROUP BY p.idProducto, p.nombreProducto, p.codigo, p.precio`,
         inputs
     });
-    return new Map(result.recordset.map(p => [p.idProducto, p]));
+    return new Map(result.recordset
+        .filter(p => esVisible(p.idProducto))
+        .map(p => [p.idProducto, { ...p, precio: precioWeb(p.idProducto, p.precio).precio }]));
 };
 
 export const crearPedido = async (req, res) => {
@@ -69,7 +80,8 @@ export const crearPedido = async (req, res) => {
             detalles: parsed.error.issues.map(i => ({ campo: i.path.join('.'), mensaje: i.message }))
         });
     }
-    const { cliente, facturacion, envio, metodoPago, items } = parsed.data;
+    const { cliente, facturacion, envio, metodoPago, items, idSesion, guardarEnCuenta } = parsed.data;
+    const idCliente = req.cliente?.idCliente ?? null;
 
     try {
         // Unificar ítems repetidos
@@ -108,8 +120,9 @@ export const crearPedido = async (req, res) => {
         const costoEnvio = envio.metodo === "delivery" ? COSTO_DELIVERY : 0;
         const total = subtotal + costoEnvio;
 
-        const nroPedido = await withTransaction(async (nuevoRequest) => {
+        const pedidoCreado = await withTransaction(async (nuevoRequest) => {
             const cabecera = await nuevoRequest()
+                .input('idCliente', sql.Int, idCliente)
                 .input('nombre', sql.NVarChar(100), cliente.nombre)
                 .input('apellido', sql.NVarChar(100), cliente.apellido)
                 .input('email', sql.VarChar(150), cliente.email)
@@ -129,12 +142,12 @@ export const crearPedido = async (req, res) => {
                 .input('costoEnvio', sql.Decimal(18, 0), costoEnvio)
                 .input('total', sql.Decimal(18, 0), total)
                 .query(`INSERT INTO web_pedido
-                            (nombre, apellido, email, telefono, documento, dv, razonSocial,
+                            (idCliente, nombre, apellido, email, telefono, documento, dv, razonSocial,
                              metodoEnvio, idSucursal, calle, calleSecundaria, referencia, ciudad, observacion,
                              metodoPago, subtotal, costoEnvio, total)
                         OUTPUT INSERTED.idPedido, INSERTED.nroPedido
                         VALUES
-                            (@nombre, @apellido, @email, @telefono, @documento, @dv, @razonSocial,
+                            (@idCliente, @nombre, @apellido, @email, @telefono, @documento, @dv, @razonSocial,
                              @metodoEnvio, @idSucursal, @calle, @calleSecundaria, @referencia, @ciudad, @observacion,
                              @metodoPago, @subtotal, @costoEnvio, @total)`);
 
@@ -155,8 +168,32 @@ export const crearPedido = async (req, res) => {
                                 (@idPedido, @idProducto, @codigo, @nombre, @precioUnitario, @cantidad, @subtotal)`);
             }
 
-            return nroPedido;
+            // Mismo commit que el pedido: si falla, no queda un pedido con el perfil a medias
+            if (idCliente && guardarEnCuenta) {
+                await guardarPerfil(idCliente, {
+                    nombre: cliente.nombre,
+                    apellido: cliente.apellido,
+                    telefono: cliente.telefono,
+                    documento: facturacion.documento,
+                    dv: facturacion.dv || null,
+                    razonSocial: facturacion.razonSocial || null,
+                    metodoEnvio: envio.metodo,
+                    idSucursal: envio.metodo === "retiro" ? envio.idSucursal : req.cliente.idSucursal,
+                    // Al retirar en sucursal se conserva la dirección guardada
+                    calle: envio.metodo === "delivery" ? envio.calle : req.cliente.calle,
+                    calleSecundaria: envio.metodo === "delivery" ? (envio.calleSecundaria || null) : req.cliente.calleSecundaria,
+                    referencia: envio.metodo === "delivery" ? (envio.referencia || null) : req.cliente.referencia,
+                    ciudad: envio.metodo === "delivery" ? envio.ciudad : req.cliente.ciudad,
+                    aceptaComunicaciones: Boolean(req.cliente.aceptaComunicaciones),
+                }, nuevoRequest);
+            }
+
+            return { idPedido, nroPedido };
         });
+        const { idPedido, nroPedido } = pedidoCreado;
+
+        // Atribuye la venta a la sesión de navegación (fuente/campaña). No bloquea la respuesta.
+        if (idSesion) vincularPedido(idSesion, idPedido, total).catch(err => console.error("No se pudo vincular la sesión:", err.message));
 
         res.status(201).json({
             mensaje: "Pedido registrado",

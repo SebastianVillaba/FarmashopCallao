@@ -25,6 +25,7 @@ const COLUMNAS = [
       { label: 'Catálogo', to: '/catalogo' },
       { label: 'Medicamentos', to: '/catalogo?depto=medicamentos' },
       { label: 'Dermocosmética', to: '/catalogo?depto=dermocosmetica' },
+      { label: 'Mi cuenta', to: '/cuenta' },
       { label: 'Mis favoritos', to: '/favoritos' },
     ],
   },

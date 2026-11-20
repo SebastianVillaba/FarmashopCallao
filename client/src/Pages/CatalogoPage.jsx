@@ -9,6 +9,7 @@ import Drawer from '../ui/Drawer';
 import Button from '../ui/Button';
 import { Select } from '../ui/Field';
 import { EmptyState } from '../ui/misc';
+import { trackBusqueda } from '../lib/analytics';
 import { api } from '../lib/api';
 import { capitalizar } from '../lib/texto';
 import useCategorias, { buscarCategoria } from '../hooks/useCategorias';
@@ -72,7 +73,10 @@ export default function CatalogoPage() {
     setCargando(true);
     setError(null);
     api.get(consulta.url, { params: consulta.params, signal: controller.signal })
-      .then(({ data }) => setProductos(data.respuesta || []))
+      .then(({ data }) => {
+        setProductos(data.respuesta || []);
+        if (consulta.params?.palabra) trackBusqueda(consulta.params.palabra, (data.respuesta || []).length);
+      })
       .catch((err) => {
         if (err.name !== 'CanceledError') {
           setError(err);

@@ -14,6 +14,11 @@ const SucursalesPage = lazy(() => import('./Pages/SucursalesPage'))
 const LegalPage = lazy(() => import('./Pages/LegalPage'))
 const FavoritosPage = lazy(() => import('./Pages/FavoritosPage'))
 const OfertasPage = lazy(() => import('./Pages/OfertasPage'))
+const IngresarPage = lazy(() => import('./Pages/Cuenta/IngresarPage'))
+const RegistroPage = lazy(() => import('./Pages/Cuenta/RegistroPage'))
+const CuentaPage = lazy(() => import('./Pages/Cuenta/CuentaPage'))
+// Panel administrativo: chunk separado, no se descarga en la tienda
+const AdminApp = lazy(() => import('./Admin/AdminApp'))
 
 const Cargando = () => (
   <div className="flex min-h-[60vh] items-center justify-center">
@@ -40,6 +45,10 @@ function App() {
           {/* RUTAS DE PEDIDOS */}
           <Route path='/pedido' element={<PedidoPage />} />
           <Route path='/pedido/:nro' element={<PedidoPage />} />
+          {/* CUENTA DEL CLIENTE */}
+          <Route path='/cuenta/ingresar' element={<IngresarPage />} />
+          <Route path='/cuenta/registro' element={<RegistroPage />} />
+          <Route path='/cuenta/*' element={<CuentaPage />} />
           {/* RUTAS INSTITUCIONALES */}
           <Route path='/sucursales' element={<SucursalesPage />} />
           <Route path='/terminos' element={<LegalPage key="terminos" tipo="terminos" />} />
@@ -49,6 +58,9 @@ function App() {
 
         {/* El checkout tiene su propio encabezado, sin distracciones */}
         <Route path='/checkout' element={<CheckoutPage />} />
+
+        {/* Panel administrativo */}
+        <Route path='/admin/*' element={<AdminApp />} />
 
         {/* 404 Not Found */}
         <Route path='*' element={<NotFound />} />

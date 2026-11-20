@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Banknote, CreditCard, MapPin, QrCode, Store, Truck } from 'lucide-react';
+import { Banknote, CircleUserRound, CreditCard, MapPin, QrCode, Store, Truck } from 'lucide-react';
+import { useCuenta } from '../../context/CuentaContext';
 import { Input, Select, Textarea } from '../../ui/Field';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { CIUDADES_DELIVERY, COSTO_DELIVERY, METODOS_PAGO, SUCURSALES } from '../../config/tienda';
@@ -23,10 +25,40 @@ function Opcion({ name, value, icono: Icono, titulo, detalle, extra, registrar }
   );
 }
 
+// Con sesión: de quién son los datos y si se guardan. Sin sesión: invitación a ingresar.
+function AvisoCuenta() {
+  const { register } = useFormContext();
+  const { cliente } = useCuenta();
+  if (!cliente) {
+    return (
+      <div className="flex flex-col items-start gap-3 rounded-2xl bg-brand-50 p-4 sm:flex-row sm:items-center">
+        <CircleUserRound className="h-6 w-6 shrink-0 text-brand-500" />
+        <p className="flex-1 text-sm text-ink-700"><strong className="text-ink-900">¿Tenés cuenta?</strong> Ingresá y completamos tus datos por vos.</p>
+        <Link to="/cuenta/ingresar?volver=/checkout" className="text-sm font-semibold text-brand-600 hover:underline">Ingresar</Link>
+        <span className="hidden text-ink-300 sm:inline">|</span>
+        <Link to="/cuenta/registro?volver=/checkout" className="text-sm font-semibold text-brand-600 hover:underline">Crear cuenta</Link>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-2xl border border-leaf-100 bg-leaf-50 p-4">
+      <p className="flex items-center gap-2 text-sm text-ink-700">
+        <CircleUserRound className="h-5 w-5 shrink-0 text-leaf-600" />
+        <span>Comprando como <strong className="text-ink-900">{cliente.nombre} {cliente.apellido}</strong>. Completamos los datos de tu cuenta.</span>
+      </p>
+      <label className="mt-3 flex cursor-pointer items-center gap-2.5 pl-7 text-sm text-ink-600">
+        <input type="checkbox" className="h-4.5 w-4.5 cursor-pointer accent-brand-500" {...register('guardarEnCuenta')} />
+        Guardar en mi cuenta los cambios que haga en este pedido
+      </label>
+    </div>
+  );
+}
+
 export function PasoDatos() {
   const { register, formState: { errors } } = useFormContext();
   return (
     <div className="space-y-8">
+      <AvisoCuenta />
       <section>
         <h2 className="mb-1 text-xl font-bold">Tus datos</h2>
         <p className="mb-5 text-sm text-ink-500">Te contactamos por WhatsApp o email para coordinar tu pedido.</p>

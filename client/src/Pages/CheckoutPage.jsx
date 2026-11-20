@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -12,22 +12,35 @@ import { CAMPOS_POR_PASO, aPayload, checkoutSchema } from './Checkout/schema';
 import Button from '../ui/Button';
 import { Card, Stepper } from '../ui/misc';
 import { api, mensajeError } from '../lib/api';
+import { getIdSesion, trackInicioCheckout } from '../lib/analytics';
 import { nombreProducto } from '../lib/texto';
 import { formatCurrency } from '../utils/formatCurrency';
 import { selectSubtotal, updateCantidad, deleteProductoCarrito, vaciarCarrito } from '../redux/cartSlice';
 import { COSTO_DELIVERY } from '../config/tienda';
+import { CLAVE_CLIENTE_LOCAL, useCuenta } from '../context/CuentaContext';
 import logoImg from '../assets/farmaShop/cropped-Farmashop-astra-180-x-60.png';
 
 const PASOS = ['Datos', 'Entrega', 'Pago', 'Confirmar'];
-const CLAVE_CLIENTE = 'farmashop:cliente';
 
-// Los datos personales se recuerdan para la próxima compra
+// Invitado: datos del último pedido en este navegador
 const datosGuardados = () => {
   try {
-    return JSON.parse(localStorage.getItem(CLAVE_CLIENTE)) || {};
+    return JSON.parse(localStorage.getItem(CLAVE_CLIENTE_LOCAL)) || {};
   } catch {
     return {};
   }
+};
+
+// Con sesión: datos y entrega preferida de la cuenta
+const datosDeCuenta = (c) => {
+  const valores = {
+    nombre: c.nombre, apellido: c.apellido, email: c.email, telefono: c.telefono,
+    documento: c.documento, dv: c.dv, razonSocial: c.razonSocial,
+    metodoEnvio: c.metodoEnvio, idSucursal: c.idSucursal ? String(c.idSucursal) : null,
+    calle: c.calle, calleSecundaria: c.calleSecundaria, referencia: c.referencia, ciudad: c.ciudad,
+  };
+  // Los campos vacíos quedan con el valor por defecto del formulario
+  return Object.fromEntries(Object.entries(valores).filter(([, v]) => v != null && v !== ''));
 };
 
 function ResumenLateral({ items, subtotal }) {
@@ -54,7 +67,21 @@ function ResumenLateral({ items, subtotal }) {
   );
 }
 
+// Espera a saber si hay sesión para armar el formulario con los datos correctos
 export default function CheckoutPage() {
+  const { cargando } = useCuenta();
+  if (cargando) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink-50">
+        <span className="h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-brand-500" />
+      </div>
+    );
+  }
+  return <Checkout />;
+}
+
+function Checkout() {
+  const { cliente, setCliente } = useCuenta();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const items = useSelector((state) => state.carrito.cartData);
@@ -67,11 +94,20 @@ export default function CheckoutPage() {
     mode: 'onTouched',
     defaultValues: {
       nombre: '', apellido: '', email: '', telefono: '', documento: '', dv: '', razonSocial: '',
-      ...datosGuardados(),
       metodoEnvio: 'retiro', idSucursal: '', calle: '', calleSecundaria: '', referencia: '', ciudad: '', observacion: '',
+      ...(cliente ? datosDeCuenta(cliente) : datosGuardados()),
       metodoPago: undefined,
+      guardarEnCuenta: cliente ? true : undefined,
     },
   });
+
+  // Un solo evento de inicio de checkout por visita a la página
+  const checkoutMedido = useRef(false);
+  useEffect(() => {
+    if (checkoutMedido.current || !items.length) return;
+    checkoutMedido.current = true;
+    trackInicioCheckout(items, subtotal);
+  }, [items, subtotal]);
 
   if (items.length === 0 && !enviando) return <Navigate to="/cart" replace />;
 
@@ -88,12 +124,17 @@ export default function CheckoutPage() {
   const confirmar = metodos.handleSubmit(async (datos) => {
     setEnviando(true);
     try {
-      const { data } = await api.post('/pedidos', aPayload(datos, items));
-      const { nombre, apellido, email, telefono, documento, dv, razonSocial } = datos;
-      try {
-        localStorage.setItem(CLAVE_CLIENTE, JSON.stringify({ nombre, apellido, email, telefono, documento, dv, razonSocial }));
-      } catch {
-        // sin persistencia
+      const { data } = await api.post('/pedidos', { ...aPayload(datos, items), idSesion: getIdSesion() });
+      if (cliente) {
+        // El servidor ya guardó el perfil: refrescarlo para la próxima compra
+        if (datos.guardarEnCuenta) api.get('/cuenta/me').then(({ data: d }) => setCliente(d.respuesta)).catch(() => {});
+      } else {
+        const { nombre, apellido, email, telefono, documento, dv, razonSocial } = datos;
+        try {
+          localStorage.setItem(CLAVE_CLIENTE_LOCAL, JSON.stringify({ nombre, apellido, email, telefono, documento, dv, razonSocial }));
+        } catch {
+          // sin persistencia
+        }
       }
       dispatch(vaciarCarrito());
       navigate(`/pedido/${data.respuesta.nroPedido}?email=${encodeURIComponent(data.respuesta.email)}&nuevo=1`, { replace: true });

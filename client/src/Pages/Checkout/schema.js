@@ -23,6 +23,9 @@ export const checkoutSchema = z.object({
 
   // Paso 3: pago
   metodoPago: z.enum(['transferencia', 'qr', 'contra_entrega'], { errorMap: () => ({ message: 'Elegí un método de pago' }) }),
+
+  // Sólo con sesión: actualizar el perfil con los datos de este pedido
+  guardarEnCuenta: z.boolean().optional(),
 }).superRefine((d, ctx) => {
   if (d.metodoEnvio === 'retiro' && !d.idSucursal) {
     ctx.addIssue({ code: 'custom', path: ['idSucursal'], message: 'Elegí una sucursal' });
@@ -55,5 +58,6 @@ export const aPayload = (d, items) => ({
       observacion: d.observacion || undefined,
     },
   metodoPago: d.metodoPago,
+  ...(d.guardarEnCuenta !== undefined && { guardarEnCuenta: d.guardarEnCuenta }),
   items: items.map(({ idProducto, cantidad }) => ({ idProducto, cantidad })),
 });

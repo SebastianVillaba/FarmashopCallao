@@ -14,10 +14,11 @@ import { api } from '../lib/api';
 import { cn } from '../lib/cn';
 import { capitalizar, nombreProducto, porcentajeDescuento, whatsappUrl } from '../lib/texto';
 import { formatCurrency } from '../utils/formatCurrency';
-import { selectEsFavorito, toggleFavorito } from '../redux/favoritosSlice';
+import useFavorito from '../hooks/useFavorito';
 import { setShowCart } from '../redux/cartSlice';
 import useAgregarAlCarrito from '../hooks/useCarrito';
 import { COSTO_DELIVERY, TIENDA } from '../config/tienda';
+import { trackVerProducto } from '../lib/analytics';
 
 // Galería: swipe en mobile, miniaturas y zoom al pasar el mouse en desktop
 function Galeria({ imagenes, nombre }) {
@@ -125,7 +126,7 @@ export default function DetalleProducto() {
   const [error, setError] = useState(null);
   const [cantidad, setCantidad] = useState(1);
   const [similares, setSimilares] = useState([]);
-  const esFavorito = useSelector(selectEsFavorito(Number(id)));
+  const { esFavorito, alternar: alternarFavorito } = useFavorito(product);
   const enCarrito = useSelector((state) => state.carrito.cartData.find((i) => i.idProducto === Number(id))?.cantidad || 0);
 
   useEffect(() => {
@@ -135,7 +136,10 @@ export default function DetalleProducto() {
     setCantidad(1);
     setSimilares([]);
     api.get('/productos/getProductoById', { params: { id }, signal: controller.signal })
-      .then(({ data }) => setProduct(data.respuesta))
+      .then(({ data }) => {
+        setProduct(data.respuesta);
+        trackVerProducto(data.respuesta);
+      })
       .catch((err) => err.name !== 'CanceledError' && setError(err))
       .finally(() => !controller.signal.aborted && setLoading(false));
     return () => controller.abort();
@@ -210,7 +214,7 @@ export default function DetalleProducto() {
               </button>
               <button
                 type="button"
-                onClick={() => dispatch(toggleFavorito(product))}
+                onClick={alternarFavorito}
                 aria-pressed={esFavorito}
                 aria-label={esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                 className={cn('grid h-11 w-11 cursor-pointer place-items-center rounded-full border bg-white transition', esFavorito ? 'border-brand-200 text-brand-500' : 'border-ink-200 text-ink-600 hover:text-brand-600')}
@@ -224,10 +228,19 @@ export default function DetalleProducto() {
             {porcentajeDescuento(product) > 0 ? (
               <div>
                 <p className="flex items-center gap-2 text-sm text-ink-400">
+                  {product.precioFarmashop && <span>Precio sugerido</span>}
                   <span className="line-through">{formatCurrency(product.precioAnterior)}</span>
                   <Badge tone="brand">-{porcentajeDescuento(product)}%</Badge>
                 </p>
+                {product.precioFarmashop && (
+                  <p className="mt-2 inline-flex items-center rounded-full bg-brand-500 px-3 py-1 text-xs font-extrabold tracking-wide text-white uppercase shadow-sm shadow-brand-500/30">
+                    Precio Farmashop
+                  </p>
+                )}
                 <p className="font-display text-4xl font-extrabold text-brand-600">{formatCurrency(product.precio)}</p>
+                {product.precioFarmashop && (
+                  <p className="text-sm font-semibold text-leaf-700">Ahorrás {formatCurrency(product.precioAnterior - product.precio)}</p>
+                )}
               </div>
             ) : (
               <p className="font-display text-4xl font-extrabold text-ink-900">{formatCurrency(product.precio)}</p>
@@ -279,6 +292,13 @@ export default function DetalleProducto() {
               </li>
             ))}
           </ul>
+
+          {product.descripcionWeb && (
+            <section className="mt-8">
+              <h2 className="text-lg font-bold">Descripción</h2>
+              <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-line text-ink-600">{product.descripcionWeb}</p>
+            </section>
+          )}
 
           <p className="mt-6 rounded-2xl bg-sky-50 p-4 text-xs leading-relaxed text-sky-700">
             Ante cualquier duda, consulte a su médico o farmacéutico. Los medicamentos de venta bajo receta requieren la presentación de la misma al momento del retiro o la entrega.

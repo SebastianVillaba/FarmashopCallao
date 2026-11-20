@@ -18,8 +18,10 @@ const CONTENIDO = {
   privacidad: {
     titulo: 'Política de privacidad',
     secciones: [
-      ['Datos que recolectamos', 'Nombre, apellido, email, teléfono, documento y dirección de entrega, exclusivamente para procesar y entregar tus pedidos.'],
+      ['Datos que recolectamos', 'Nombre, apellido, email, teléfono, documento y dirección de entrega. Si creás una cuenta, también guardamos tus productos favoritos y el historial de tus pedidos.'],
       ['Uso de los datos', 'Usamos tus datos para gestionar pedidos, emitir facturas y comunicarnos con vos sobre tu compra. No los vendemos ni compartimos con terceros, salvo obligación legal.'],
+      ['Comunicaciones', 'Sólo te enviamos ofertas y novedades por email o WhatsApp si lo aceptaste al crear tu cuenta. Podés darte de baja en cualquier momento desde "Mi cuenta". Los avisos sobre tus pedidos se envían siempre.'],
+      ['Tu cuenta', 'Tu contraseña se guarda cifrada y nadie de Farmashop puede verla. Podés modificar tus datos desde "Mi cuenta" y solicitar la eliminación de la cuenta escribiéndonos por WhatsApp.'],
       ['Almacenamiento local', 'El carrito, tus favoritos y los datos del último pedido se guardan en tu navegador para hacer más rápida la próxima compra. Podés borrarlos limpiando los datos del sitio.'],
       ['Tus derechos', 'Podés solicitar el acceso, corrección o eliminación de tus datos escribiéndonos por WhatsApp.'],
     ],

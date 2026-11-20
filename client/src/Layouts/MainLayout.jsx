@@ -1,30 +1,37 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { BadgePercent, ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, MessageCircle, Search, ShoppingBag, Truck } from 'lucide-react';
+import { BadgePercent, ChevronDown, ChevronRight, Heart, Home, LayoutGrid, MapPin, Menu, MessageCircle, Search, ShoppingBag, Truck, UserRound } from 'lucide-react';
 import CartDrawer from '../Components/CartView';
 import Footer from '../Components/Footer';
 import FloatingBubble from '../Components/FloatingBubble';
 import SearchBox from '../Components/SearchBox';
 import DepartamentoIcono from '../Components/DepartamentoIcono';
+import DecoracionTema, { CintaTema } from '../Components/DecoracionTema';
+import AvisoCookies from '../Components/AvisoCookies';
 import Drawer from '../ui/Drawer';
 import { cn } from '../lib/cn';
 import { whatsappUrl } from '../lib/texto';
 import useCategorias from '../hooks/useCategorias';
 import { selectCantidadTotal, setShowCart } from '../redux/cartSlice';
 import { TIENDA } from '../config/tienda';
+import { TEMAS } from '../config/temas';
+import { useConfig } from '../context/ConfigContext';
+import { useCuenta } from '../context/CuentaContext';
+import { trackPagina } from '../lib/analytics';
 import logoImg from '../assets/farmaShop/cropped-Farmashop-astra-180-x-60.png';
 
 const urlDepartamento = (d) => `/catalogo?depto=${d.slug}`;
 const urlCategoria = (c) => `/catalogo?categoria=${c.id}`;
 
 function BarraSuperior() {
+  const { tema } = useConfig();
   return (
     <div className="bg-ink-900 text-[13px] text-white/85">
       <div className="container-page flex h-9 items-center justify-between gap-4">
         <p className="flex items-center gap-2 truncate">
           <Truck className="h-4 w-4 shrink-0 text-leaf-500" />
-          <span className="truncate">Delivery a domicilio y retiro gratis en sucursal</span>
+          <span className="truncate">{(TEMAS[tema] || TEMAS.default).mensaje}</span>
         </p>
         <div className="hidden items-center gap-5 sm:flex">
           <Link to="/sucursales" className="flex items-center gap-1.5 hover:text-white">
@@ -187,6 +194,27 @@ function BotonIcono({ onClick, to, label, children, badge }) {
     : <button type="button" onClick={onClick} className={clases} aria-label={label}>{contenido}</button>;
 }
 
+// Acceso a la cuenta: iniciales si hay sesión, "Ingresar" si no
+function BotonCuenta() {
+  const { cliente, cargando } = useCuenta();
+  if (cargando) return <span className="h-11 w-11" aria-hidden />;
+  if (cliente) {
+    const iniciales = `${cliente.nombre?.[0] || ''}${cliente.apellido?.[0] || ''}`.toUpperCase();
+    return (
+      <Link to="/cuenta" className="flex h-11 cursor-pointer items-center gap-2 rounded-full pr-1 pl-1 text-ink-700 transition hover:bg-ink-100 xl:pr-3" aria-label="Mi cuenta">
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-500 text-sm font-bold text-white">{iniciales}</span>
+        <span className="hidden max-w-28 truncate text-sm font-semibold xl:block">{cliente.nombre}</span>
+      </Link>
+    );
+  }
+  return (
+    <Link to="/cuenta/ingresar" className="flex h-11 cursor-pointer items-center gap-2 rounded-full px-2.5 text-ink-700 transition hover:bg-ink-100 hover:text-brand-600" aria-label="Ingresar a mi cuenta">
+      <UserRound className="h-5.5 w-5.5" />
+      <span className="hidden text-sm leading-tight font-semibold xl:block">Ingresar</span>
+    </Link>
+  );
+}
+
 function NavegacionInferior({ onCategorias, onBuscar }) {
   const dispatch = useDispatch();
   const cantidad = useSelector(selectCantidadTotal);
@@ -234,8 +262,15 @@ export default function MainLayout() {
     setBuscadorMobile(false);
   }, [location.pathname]);
 
+  // Una visita por cada página vista (espera al <title> de la página)
+  useEffect(() => {
+    const t = setTimeout(() => trackPagina(location.pathname + location.search), 300);
+    return () => clearTimeout(t);
+  }, [location.pathname, location.search]);
+
   return (
     <div className="flex min-h-screen flex-col">
+      <CintaTema />
       <BarraSuperior />
 
       <header className={cn(
@@ -269,6 +304,7 @@ export default function MainLayout() {
                 <Heart className="h-5.5 w-5.5" />
               </BotonIcono>
             </span>
+            <BotonCuenta />
             <BotonIcono onClick={() => dispatch(setShowCart(true))} label="Abrir carrito" badge={cantidad}>
               <ShoppingBag className="h-5.5 w-5.5" />
             </BotonIcono>
@@ -292,6 +328,8 @@ export default function MainLayout() {
 
       <FloatingBubble phoneNumber={TIENDA.whatsapp} message="Hola, les escribo desde la web de Farmashop!" />
       <CartDrawer />
+      <DecoracionTema />
+      <AvisoCookies />
       <MenuMobile open={menuAbierto} onOpenChange={setMenuAbierto} departamentos={departamentos} />
       <NavegacionInferior onCategorias={() => setMenuAbierto(true)} onBuscar={() => { window.scrollTo({ top: 0 }); setBuscadorMobile(true); }} />
     </div>
