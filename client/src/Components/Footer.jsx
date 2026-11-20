@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, MapPin } from 'lucide-react';
+import { Lock, Mail, MapPin } from 'lucide-react';
 import { WhatsAppLogo } from './FloatingBubble';
 import { whatsappUrl } from '../lib/texto';
 import { TIENDA } from '../config/tienda';
@@ -111,6 +111,11 @@ export default function Footer() {
             <p className="mt-1 text-white/50">
               Desarrollado por <span className="font-semibold text-white/70">Treekings S.A.</span> ·{' '}
               <a href={`mailto:${TIENDA.email}`} className="transition hover:text-white">{TIENDA.email}</a>
+            </p>
+            <p className="mt-1">
+              <Link to="/admin/login" className="inline-flex items-center gap-1 text-white/50 transition hover:text-white">
+                <Lock className="h-3 w-3" /> Panel administrativo
+              </Link>
             </p>
           </div>
           <img src={bancardImg} alt="Medios de pago aceptados" className="h-8 w-auto rounded-md bg-white p-1" />
