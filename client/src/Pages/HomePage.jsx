@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import HomeImageSlider from '../Components/HomeImageSlider';
+import BotonesDescuento from '../Components/BotonesDescuento';
 import ComprarCategoria from '../Components/ComprarCategoria';
 import ProductosDestacados from '../Components/ProductosDestacados';
 import ProductosOferta from '../Components/ProductosOferta';
@@ -93,6 +94,7 @@ export default function HomePage() {
         {/* Primero lo que más incentiva la compra: ofertas y destacados */}
         <div className="space-y-6">
           <HomeImageSlider />
+          <BotonesDescuento />
           <ProductosOferta />
         </div>
         <ProductosDestacados />

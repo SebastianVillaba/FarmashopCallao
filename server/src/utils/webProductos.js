@@ -52,6 +52,10 @@ export const getWebProducto = (idProducto) => datos.get(idProducto) || null;
 
 export const esVisible = (idProducto) => datos.get(idProducto)?.visible !== false;
 
+// Productos visibles con precio de referencia propio (recomendado o precio Farmashop): candidatos a tener descuento
+export const getIdsConPrecioReferencia = () =>
+    [...datos].filter(([, d]) => d.visible && (d.precioRecomendado > 0 || d.precioFarmashop > 0)).map(([id]) => id);
+
 export const getIdsDestacados = () =>
     [...datos].filter(([, d]) => d.destacado && d.visible).map(([id]) => id);
 

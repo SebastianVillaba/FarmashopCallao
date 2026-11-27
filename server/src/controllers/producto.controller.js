@@ -1,7 +1,7 @@
 import { executeRequest } from "../utils/dbHandler.js";
 import { getImagenes, tieneImagen } from "../utils/imageIndex.js";
 import { asegurarOfertas, getIdsEnOferta } from "../utils/ofertas.js";
-import { asegurarWebProductos, esVisible, getIdsDestacados, getWebProducto, precioWeb } from "../utils/webProductos.js";
+import { asegurarWebProductos, esVisible, getIdsConPrecioReferencia, getIdsDestacados, getWebProducto, precioWeb } from "../utils/webProductos.js";
 import sql from 'mssql';
 
 // Función para crear slug (sin acentos para URLs limpias)
@@ -219,6 +219,63 @@ const getOfertas = async (req, res) => {
     }
 };
 
+// ---------------------------------------------------------------- Productos por % de descuento
+// Rangos de los botones de la home (porcentaje redondeado, igual que la etiqueta de la tarjeta)
+export const RANGOS_DESCUENTO = {
+    '20': { min: 20, max: 29 },
+    '30': { min: 30, max: 39 },
+    '40': { min: 40, max: 49 },
+    '50': { min: 50, max: 50 },
+    '50mas': { min: 51, max: 100 },
+};
+const DESCUENTOS_TTL_MS = 5 * 60 * 1000;
+let cacheDescuentos = { fecha: 0, productos: [] };
+
+export const porcentajeDescuento = (p) =>
+    p.precioAnterior > p.precio && p.precio > 0 ? Math.round((1 - p.precio / p.precioAnterior) * 100) : 0;
+
+// Todos los productos con descuento vigente y stock (ofertas del ERP + precios recomendados/Farmashop)
+const productosConDescuento = async () => {
+    if (Date.now() - cacheDescuentos.fecha < DESCUENTOS_TTL_MS) return cacheDescuentos.productos;
+    const ids = [...new Set([...getIdsEnOferta(), ...getIdsConPrecioReferencia()])];
+    const productos = [];
+    // SQL Server admite hasta 2100 parámetros por consulta
+    for (let i = 0; i < ids.length; i += 1000) {
+        productos.push(...await productosPorIds(ids.slice(i, i + 1000)));
+    }
+    const conDescuento = productos
+        .filter(p => p.stockTotal > 0 && porcentajeDescuento(p) >= RANGOS_DESCUENTO['20'].min)
+        .map(p => ({ ...p, descuento: porcentajeDescuento(p) }))
+        .sort((a, b) => (Boolean(b.imagen) - Boolean(a.imagen)) || (b.descuento - a.descuento));
+    cacheDescuentos = { fecha: Date.now(), productos: conDescuento };
+    return conDescuento;
+};
+
+const enRango = (p, { min, max }) => p.descuento >= min && p.descuento <= max;
+
+// Cantidad de productos por rango (la home oculta los botones vacíos)
+const getResumenDescuentos = async (req, res) => {
+    try {
+        const productos = await productosConDescuento();
+        const respuesta = Object.fromEntries(Object.entries(RANGOS_DESCUENTO).map(([k, r]) => [k, productos.filter(p => enRango(p, r)).length]));
+        res.status(200).json({ mensaje: "Consulta exitosa", respuesta });
+    } catch (err) {
+        errorInterno(res, "getResumenDescuentos", err);
+    }
+};
+
+const getProductosPorDescuento = async (req, res) => {
+    try {
+        const rango = RANGOS_DESCUENTO[req.query.rango];
+        if (!rango) return res.status(400).json({ error: "Rango de descuento inválido" });
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 300);
+        const productos = (await productosConDescuento()).filter(p => enRango(p, rango));
+        res.status(200).json({ mensaje: "Consulta exitosa", respuesta: productos.slice(0, limit), total: productos.length });
+    } catch (err) {
+        errorInterno(res, "getProductosPorDescuento", err);
+    }
+};
+
 const getProductoByNombre = async (req, res) => {
     try {
         const { palabra } = req.query;
@@ -385,6 +442,8 @@ const getMarcaByTipo = async (req, res) => {
 }
 
 export default {
+    getResumenDescuentos,
+    getProductosPorDescuento,
     getProducto,
     getDestacados,
     getOfertas,

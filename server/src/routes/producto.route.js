@@ -15,6 +15,10 @@ router.get("/destacados", productoController.getDestacados);
 // Ruta para productos en oferta vigente (cabOferta/detOferta del ERP)
 router.get("/ofertas", productoController.getOfertas);
 
+// Botones de descuento de la home: cantidad por rango y productos de un rango (?rango=20|30|40|50|50mas)
+router.get("/descuentos/resumen", productoController.getResumenDescuentos);
+router.get("/descuentos", productoController.getProductosPorDescuento);
+
 // Ruta para conseguir el listado de tipo de productos
 router.get("/getCategorias", productoController.getCategorias);
 
